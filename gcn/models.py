@@ -174,6 +174,7 @@ class GCN(Model):
                                             logging=self.logging))
 
     def predict(self):
+        print("hello darkness my old friend\n")
         return tf.nn.softmax(self.outputs)
 #TODO: change the softmax to a more suitable function
 
@@ -189,8 +190,8 @@ class JCNN(Model):
 
 
 
-        # this should be molecule properties now
-        self.molecule_number_of_properties = placeholders['labels'].get_shape().as_list()[1]
+        # this should be molecule outputs now
+        self.molecule_number_of_outputs = placeholders['labels'].get_shape().as_list()[1]
 
 
 
@@ -231,11 +232,11 @@ class JCNN(Model):
                                             dropout=True,
                                             logging=self.logging))
         
-        self.layers.append(ReadOut(input_dim=self.output_dim, 
-                                    output_dim=self.molecule_number_of_properties,
+        self.layers.append(ReadOut(input_dim=FLAGS.node_output_size, 
+                                    output_dim=self.molecule_number_of_outputs,
                                     placeholders=self.placeholders,
                                     act=lambda x: x,
                                     dropout=True,
                                     logging=self.logging))
     def predict(self):
-        return tf.nn.softmax(self.outputs)
+        return self.outputs #tf.nn.softmax(self.outputs)

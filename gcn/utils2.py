@@ -38,7 +38,8 @@ def add_sample(url,nodes,features,target,A,sizes):
     #np.append(nodes,vertices)
     nodes = np.append(nodes,vertices)
     cv=float(properties[15])
-   
+    cv2=float(properties[14])
+
     tempA = np.zeros((d,d)); #Adjacency matrix
     f=1;
     tempfeatures = [[0]*f]*d; # d=#nodes,  f=#features available
@@ -54,7 +55,7 @@ def add_sample(url,nodes,features,target,A,sizes):
     
     A.append(tempA)
     sizes.append(d)
-    target.append(cv)
+    target.append([cv,cv2])
     features+=tempfeatures
     return nodes, features, target, A, sizes
 
