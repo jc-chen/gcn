@@ -186,7 +186,15 @@ class JCNN(Model):
         self.inputs = placeholders['features']
         self.input_dim = input_dim
         # self.input_dim = self.inputs.get_shape().as_list()[1]  # To be supported in future Tensorflow versions
-        self.output_dim = placeholders['labels'].get_shape().as_list()[1]
+
+
+
+        # this should be molecule properties now
+        self.molecule_number_of_properties = placeholders['labels'].get_shape().as_list()[1]
+
+
+
+
         self.placeholders = placeholders
 
         self.optimizer = tf.train.AdamOptimizer(learning_rate=FLAGS.learning_rate)
@@ -217,13 +225,14 @@ class JCNN(Model):
                                             logging=self.logging))
 
         self.layers.append(GraphConvolution(input_dim=FLAGS.hidden1,
-                                            output_dim=self.output_dim,
+                                            output_dim=FLAGS.node_output_size,
                                             placeholders=self.placeholders,
                                             act=lambda x: x,
                                             dropout=True,
                                             logging=self.logging))
-        self.layers.append(ReadOut(input_dim=FLAGS.hidden1, 
-                                    output_dim=self.output_dim,
+        
+        self.layers.append(ReadOut(input_dim=self.output_dim, 
+                                    output_dim=self.molecule_number_of_properties,
                                     placeholders=self.placeholders,
                                     act=lambda x: x,
                                     dropout=True,
