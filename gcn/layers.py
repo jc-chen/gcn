@@ -64,6 +64,7 @@ class Layer(object):
         logging = kwargs.get('logging', False)
         self.logging = logging
         self.sparse_inputs = False
+        self.num_molecules = None
 
     def _call(self, inputs):
         return inputs
@@ -206,6 +207,8 @@ class ReadOut(Layer):
         self.featureless = featureless
         self.bias = bias
 
+        self.num_molecules = placeholders['num_molecules']
+        
         # helper variable for sparse dropout
         self.num_features_nonzero = placeholders['num_features_nonzero']
 
