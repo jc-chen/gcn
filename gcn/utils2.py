@@ -23,6 +23,11 @@ def sample_mask(idx, l):
     mask[idx] = 1
     return np.array(mask, dtype=np.bool)
 
+def get_atomic_features(n):
+    '''n is the atomic number'''
+    return
+
+
 def add_sample(url,nodes,features,target,A,sizes):
     properties = [];
     with open(url,'r') as file:
@@ -37,11 +42,18 @@ def add_sample(url,nodes,features,target,A,sizes):
     d = len(vertices) #the size of each molecule
     #np.append(nodes,vertices)
     nodes = np.append(nodes,vertices)
-    cv=float(properties[15])
-    cv2=float(properties[14])
-
+    
+    dipole_moment = float(properties[6])
+    polarizability = float(properties[7])
+    homo = float(properties[8])
+    lumo = float(properties[9])
+    gap = float(properties[10])
+    enthalpy = float(properties[15])
+    free_nrg = float(properties[16])
+    heat_capacity = float(properties[17])
+  
     tempA = np.zeros((d,d)); #Adjacency matrix
-    f=1;
+    f=2;
     tempfeatures = [[0]*f]*d; # d=#nodes,  f=#features available
     #populate the adjacency matrix
     for tupl in edges:
@@ -51,11 +63,12 @@ def add_sample(url,nodes,features,target,A,sizes):
         tempA[v_i][v_j] = 1.;
         tempA[v_j][v_i] = 1.;
         tempfeatures[v_i][0] = float(vertices[v_i]);
-        #tempfeatures[v_i][1] = float(vertices[v_i]); #placeholder: second feature
+        tempfeatures[v_i][1] = float(vertices[v_i]); #placeholder: second feature
     
     A.append(tempA)
     sizes.append(d)
-    target.append([cv,cv2])
+    target.append([dipole_moment,polarizability,homo,lumo,gap,
+                    enthalpy,free_nrg,heat_capacity])
     features+=tempfeatures
     return nodes, features, target, A, sizes
 
@@ -113,7 +126,7 @@ def load_data3():
     y_test[test_mask] = labels[test_mask]
     y_val[val_mask] = labels[val_mask]
 
-    feats = sp.csr_matrix(np.array(features))
+    feats = sp.coo_matrix(np.array(features)).tolil()
     return sparse_adj, feats, y_train, y_val, y_test, train_mask, val_mask, test_mask
 
 

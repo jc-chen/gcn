@@ -210,11 +210,12 @@ class ReadOut(Layer):
         self.num_features_nonzero = placeholders['num_features_nonzero']
 
         with tf.variable_scope(self.name + '_vars'):
-            for i in range(len(self.support)):
-                self.vars['weights_' + str(i)] = glorot([input_dim, output_dim],
-                                                        name='weights_' + str(i))
+            #for i in range(num_layers):
+            i=0
+            self.vars['weights_' + str(i)] = glorot([input_dim, output_dim],
+                                                    name='weights_' + str(i))
             if self.bias:
-                self.vars['bias'] = zeros([output_dim], name='bias')
+                self.vars['bias_' + str(i)] = zeros([output_dim], name='bias_'+str(i))
 
         if self.logging:
             self._log_vars()
@@ -223,6 +224,7 @@ class ReadOut(Layer):
     def _call(self, inputs):
         x = inputs
 
+        i=0
         # dropout
         if self.sparse_inputs:
             x = sparse_dropout(x, 1-self.dropout, self.num_features_nonzero)
@@ -230,16 +232,15 @@ class ReadOut(Layer):
             x = tf.nn.dropout(x, 1-self.dropout)
 
         '''this is the part (transform/convolve) that needs to be changed to output desired value'''
-        # transform from "likeliness of each class" into useful value
+        #for i in range(num_layers):
+        if not self.featureless:
+            pre_sup = dot(x, self.vars['weights_' + str(i)],
+                          sparse=self.sparse_inputs)
+        else:
+            pre_sup = self.vars['weights_' + str(i)]
         supports = list()
-        for i in range(len(self.support)):
-            if not self.featureless:
-                pre_sup = dot(x, self.vars['weights_' + str(i)],
-                              sparse=self.sparse_inputs)
-            else:
-                pre_sup = self.vars['weights_' + str(i)]
-            support = dot(self.support[i], pre_sup, sparse=True)
-            supports.append(support)
+        support = dot(self.support[i], pre_sup, sparse=True)
+        supports.append(support)
         output = tf.add_n(supports)
 
         # bias
