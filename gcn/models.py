@@ -27,6 +27,8 @@ class Model(object):
         self.inputs = None
         self.outputs = None
 
+        self.num_molecules = None
+
         self.loss = 0
         self.accuracy = 0
         self.optimizer = None
@@ -193,7 +195,7 @@ class JCNN(Model):
         # this should be molecule outputs now
         self.molecule_number_of_outputs = placeholders['labels'].get_shape().as_list()[1]
 
-
+        self.num_molecules = placeholders['num_molecules']
 
 
         self.placeholders = placeholders
@@ -231,9 +233,7 @@ class JCNN(Model):
                                             act=lambda x: x,
                                             dropout=True,
                                             logging=self.logging))
-        print("i want fries")
-        print(self.input_dim)
-        print(self.molecule_number_of_outputs)
+        
         self.layers.append(ReadOut(input_dim=FLAGS.node_output_size, 
                                     output_dim=self.molecule_number_of_outputs,
                                     placeholders=self.placeholders,

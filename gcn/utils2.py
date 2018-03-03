@@ -87,6 +87,7 @@ def load_data3():
     #print(molecule_sizes)
     #print(len(molecule_sizes))
     n = sum(molecule_sizes)
+    molecule_sizes=np.array(molecule_sizes)
     adj = np.zeros((n,n))
 
     i=0 #index
@@ -127,7 +128,8 @@ def load_data3():
     y_val[val_mask] = labels[val_mask]
 
     feats = sp.coo_matrix(np.array(features)).tolil()
-    return sparse_adj, feats, y_train, y_val, y_test, train_mask, val_mask, test_mask
+
+    return sparse_adj, feats, y_train, y_val, y_test, train_mask, val_mask, test_mask, molecule_sizes
 
 
 def sparse_to_tuple(sparse_mx):
@@ -175,7 +177,7 @@ def preprocess_adj(adj):
     return sparse_to_tuple(adj_normalized)
 
 
-def construct_feed_dict(features, support, labels, labels_mask, placeholders):
+def construct_feed_dict(features, support, labels, labels_mask, num_molecules, placeholders):
     """Construct feed dictionary."""
     feed_dict = dict()
     feed_dict.update({placeholders['labels']: labels})
@@ -183,6 +185,7 @@ def construct_feed_dict(features, support, labels, labels_mask, placeholders):
     feed_dict.update({placeholders['features']: features})
     feed_dict.update({placeholders['support'][i]: support[i] for i in range(len(support))})
     feed_dict.update({placeholders['num_features_nonzero']: features[1].shape})
+    feed_dict.update({placeholders['num_molecules']:num_molecules})
     return feed_dict
 
 
