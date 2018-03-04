@@ -66,7 +66,7 @@ def add_sample(url,nodes,features,target,A,sizes,molecule_id):
         tempfeatures[v_i][1] = float(vertices[v_i]); #placeholder: second feature
     
     A.append(tempA)
-    sizes = sizes + [molecule_id]*d
+    sizes = sizes + [d]
     molecule_id=molecule_id+1
 
     target.append([dipole_moment,polarizability,homo,lumo,gap,
@@ -80,17 +80,16 @@ def load_data3():
     nodes = np.array([])
     features = [] #features of each node
     A=[] #list of graph adjacency matrices; each entry is the adjacency matrix for one molecule
-    molecule_partitions = [] #list of sizes of molecules; each entry is the size of a molecule
+    sizes = [] #list of sizes of molecules; each entry is the size of a molecule
     molecule_id = 0
     target = [] #list of "y's" - each entry is an "answer" for a molecule
 
     for file in os.listdir(path):
-        nodes, features, target, A, molecule_partitions, molecule_id = add_sample(path+file,nodes,features,target,A,molecule_partitions,molecule_id)
-    #print("sizes")
-    #print(molecule_partitions)
-    #print(len(molecule_partitions))
-    n = len(molecule_partitions)
-    molecule_partitions=np.array(molecule_partitions)
+        nodes, features, target, A, sizes, molecule_id = add_sample(path+file,nodes,features,target,A,sizes,molecule_id)
+
+    molecule_partitions=np.cumsum(sizes) #to get partition positions
+    
+    n = molecule_partitions[-1] #total sum of all nodes
     adj = np.zeros((n,n))
 
     i=0 #index
