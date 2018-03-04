@@ -229,7 +229,12 @@ class ReadOut(Layer):
                                             name='weights_i')        
             self.vars['weights_j'] = glorot([input_dim, output_dim],
                                             name='weights_j')        
-
+            if self.bias:
+                self.vars['bias_i'] = zeros([output_dim],
+                                            name='bias_i')
+                self.vars['bias_j'] = zeros([output_dim],
+                                            name='bias_j')
+                
                 # self.vars['weights_i_' + str(i)] = glorot([input_dim, output_dim],
                 #                                         name='weights_i_' + str(i))
                 
@@ -261,14 +266,20 @@ class ReadOut(Layer):
         #n_molecs = tf.scan(lambda a, x:a,)
         #tf.dynamic_partition(x, self.molecule_partitions, self.num_molecules, name=None)
 
-        print("habby")
-        print(self.vars['weights_i'].shape)
-        print(x.shape)
-        nn_i = tf.sigmoid(tf.matmul(x,self.vars['weights_i']))
-        nn_j = tf.nn.relu(tf.matmul(x,self.vars['weights_j']))
+        nn_i = tf.matmul(x,self.vars['weights_i'])
+        nn_j = tf.matmul(x,self.vars['weights_j'])
         
+        if self.bias:
+            nn_i += self.vars['bias_i']
+            nn_j += self.vars['bias_j']
+
+
+        nn_i = tf.sigmoid(nn_i)
+        nn_j = tf.nn.relu(nn_j)
+
         output = tf.multiply(nn_i,nn_j)
 
+        output = tf.cumsum(output)
         
         #     if not self.featureless:
         #         pre_sup = dot(x, self.vars['weights_' + str(i)],
@@ -280,8 +291,6 @@ class ReadOut(Layer):
         # output = tf.add_n(supports)
         
         # bias
-        if self.bias:
-            output += self.vars['bias']
 
         return self.act(output)
 
