@@ -215,6 +215,9 @@ class JCNN(Model):
         #                                          self.placeholders['labels_mask'])
 
     def _accuracy(self):
+        print("shapes")
+        print(self.outputs.shape)
+        print(self.placeholders['labels'].shape)
         self.accuracy = square_error(self.outputs, self.placeholders['labels'],
                                         self.placeholders['labels_mask'])
 

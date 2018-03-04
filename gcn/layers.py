@@ -212,23 +212,36 @@ class ReadOut(Layer):
         self.molecule_partitions = placeholders['molecule_partitions']
         self.num_molecules = placeholders['num_molecules']
 
-        self.test = None
 
         # helper variable for sparse dropout
         self.num_features_nonzero = placeholders['num_features_nonzero']
 
+
         # print("habby wormy")
         # print(self.molecule_partitions.shape[0])
         with tf.variable_scope(self.name + '_vars'):
-            for i in range(self.num_labels):
-                self.vars['weights_' + str(i)] = glorot([input_dim, output_dim],
-                                                        name='weights_' + str(i))
-                if self.bias:
-                    self.vars['bias_' + str(i)] = zeros([output_dim], name='bias_'+str(i))
+            # for i in range(input_dim*output_dim):
+            #     self.vars['weights_i'] += [glorot([input_dim, output_dim],
+            #                                     name='weights_i_' + str(i))]
+            #     self.vars['weights_j'] += [glorot([input_dim, output_dim],
+            #                                     name='weights_j_' + str(i))]
+            self.vars['weights_i'] = glorot([input_dim, output_dim],
+                                            name='weights_i')        
+            self.vars['weights_j'] = glorot([input_dim, output_dim],
+                                            name='weights_j')        
+
+                # self.vars['weights_i_' + str(i)] = glorot([input_dim, output_dim],
+                #                                         name='weights_i_' + str(i))
+                
+                # self.vars['weights_j_' + str(i)] = glorot([input_dim, output_dim],
+                #                                         name='weights_j_' + str(i))
+                # if self.bias:
+                #     self.vars['bias_' + str(i)] = zeros([output_dim], name='bias_'+str(i))
 
         if self.logging:
             self._log_vars()
         
+
 
     def _call(self, inputs):
         x = inputs
@@ -240,20 +253,21 @@ class ReadOut(Layer):
         else:
             x = tf.nn.dropout(x, 1-self.dropout)
 
-        # self.test = self.molecule_partitions[1]
 
         # b = tf.slice(x,[0,self.molecule_partitions[0],0],[1,self.molecule_partitions[1],x.shape[1]])
 
         '''this is the part (transform/convolve) that needs to be changed to output desired value'''
 
+        #n_molecs = tf.scan(lambda a, x:a,)
+        #tf.dynamic_partition(x, self.molecule_partitions, self.num_molecules, name=None)
 
-        tf.dynamic_partition(x, self.molecule_partitions, self.num_molecules, name=None)
-
-
-        # for j in range(len(self.molecule_partitions)):
-        #     c = tf.slice(x,[0,self.molecule_partitions[j]-1,0],)
-
-
+        print("habby")
+        print(self.vars['weights_i'].shape)
+        print(x.shape)
+        nn_i = tf.sigmoid(tf.matmul(x,self.vars['weights_i']))
+        nn_j = tf.nn.relu(tf.matmul(x,self.vars['weights_j']))
+        
+        output = tf.multiply(nn_i,nn_j)
 
         
         #     if not self.featureless:
@@ -263,10 +277,8 @@ class ReadOut(Layer):
         #         pre_sup = self.vars['weights_' + str(i)]
         #     support = dot(self.support[i], pre_sup, sparse=True)
         #     supports.append(support)
-        
         # output = tf.add_n(supports)
         
-        output = x
         # bias
         if self.bias:
             output += self.vars['bias']

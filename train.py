@@ -58,7 +58,7 @@ placeholders = {
     'labels_mask': tf.placeholder(tf.int32),
     'dropout': tf.placeholder_with_default(0., shape=()),
     'num_features_nonzero': tf.placeholder(tf.int32),  # helper variable for sparse dropout
-    'molecule_partitions': tf.placeholder(tf.int32,shape=()),
+    'molecule_partitions': tf.placeholder(tf.int32,shape=(molecule_partitions.shape)),
     'num_molecules': tf.placeholder(tf.int32,shape=())
 }
 
@@ -93,10 +93,6 @@ for epoch in range(FLAGS.epochs):
     feed_dict.update({placeholders['dropout']: FLAGS.dropout})
 
 
-    print('Vanilla Pudding')
-    out = sess.run([model.test], feed_dict=feed_dict)
-    print(out)
-    exit()
     # Training step
     outs = sess.run([model.opt_op, model.loss, model.accuracy], feed_dict=feed_dict)
 

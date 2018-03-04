@@ -22,5 +22,7 @@ def masked_accuracy(preds, labels, mask):
 def square_error(preds, labels, mask):
     """Accuracy but like, squared error"""
     #n = len(preds)
+    print("square error")
     accuracy_all = tf.reduce_sum(tf.pow(preds-labels,2))/2.
+    print(tf.reduce_mean(accuracy_all).shape)
     return tf.reduce_mean(accuracy_all)
