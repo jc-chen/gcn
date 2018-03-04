@@ -27,8 +27,7 @@ flags.DEFINE_integer('early_stopping', 10, 'Tolerance for early stopping (# of e
 flags.DEFINE_integer('max_degree', 3, 'Maximum Chebyshev polynomial degree.')
 
 # Load data
-adj, features, y_train, y_val, y_test, train_mask, val_mask, test_mask,molec_sizes = load_data3()
-
+adj, features, y_train, y_val, y_test, train_mask, val_mask, test_mask,molecule_partitions, num_molecules = load_data3()
 
 # Some preprocessing
 features = preprocess_features(features)
@@ -50,8 +49,6 @@ elif FLAGS.model == 'jcnn':
     model_func = JCNN
 else:
     raise ValueError('Invalid argument for model: ' + str(FLAGS.model))
-print("training")
-print(y_train.shape)
 
 # Define placeholders
 placeholders = {
@@ -61,7 +58,8 @@ placeholders = {
     'labels_mask': tf.placeholder(tf.int32),
     'dropout': tf.placeholder_with_default(0., shape=()),
     'num_features_nonzero': tf.placeholder(tf.int32),  # helper variable for sparse dropout
-    'num_molecules': tf.placeholder(tf.int64,shape=molec_sizes.shape)
+    'molecule_partitions': tf.placeholder(tf.int32,shape=()),
+    'num_molecules': tf.placeholder(tf.int32,shape=())
 }
 
 # Create model
@@ -74,9 +72,9 @@ sess = tf.Session()
 
 
 # Define model evaluation function
-def evaluate(features, support, labels, mask, placeholders):
+def evaluate(features, support, labels, mask, molecule_partitions, num_molecules, placeholders):
     t_test = time.time()
-    feed_dict_val = construct_feed_dict(features, support, labels, mask, placeholders)
+    feed_dict_val = construct_feed_dict(features, support, labels, mask, molecule_partitions, num_molecules, placeholders)
     outs_val = sess.run([model.loss, model.accuracy], feed_dict=feed_dict_val)
     return outs_val[0], outs_val[1], (time.time() - t_test)
 
@@ -91,9 +89,14 @@ for epoch in range(FLAGS.epochs):
 
     t = time.time()
     # Construct feed dictionary
-    feed_dict = construct_feed_dict(features, support, y_train, train_mask, placeholders)
+    feed_dict = construct_feed_dict(features, support, y_train, train_mask, molecule_partitions, num_molecules, placeholders)
     feed_dict.update({placeholders['dropout']: FLAGS.dropout})
 
+
+    print('Vanilla Pudding')
+    out = sess.run([model.test], feed_dict=feed_dict)
+    print(out)
+    exit()
     # Training step
     outs = sess.run([model.opt_op, model.loss, model.accuracy], feed_dict=feed_dict)
 

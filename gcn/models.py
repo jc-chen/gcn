@@ -27,6 +27,9 @@ class Model(object):
         self.inputs = None
         self.outputs = None
 
+        self.molecule_partitions = None
+        self.num_molecules = None
+
         self.loss = 0
         self.accuracy = 0
         self.optimizer = None
@@ -193,8 +196,8 @@ class JCNN(Model):
         # this should be molecule outputs now
         self.molecule_number_of_outputs = placeholders['labels'].get_shape().as_list()[1]
 
-
-
+        self.molecule_partitions = placeholders['molecule_partitions']
+        self.num_molecules = placeholders['num_molecules']
 
         self.placeholders = placeholders
 

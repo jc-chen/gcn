@@ -28,7 +28,7 @@ def get_atomic_features(n):
     return
 
 
-def add_sample(url,nodes,features,target,A,sizes):
+def add_sample(url,nodes,features,target,A,sizes,molecule_id):
     properties = [];
     with open(url,'r') as file:
         for row in file:
@@ -66,11 +66,13 @@ def add_sample(url,nodes,features,target,A,sizes):
         tempfeatures[v_i][1] = float(vertices[v_i]); #placeholder: second feature
     
     A.append(tempA)
-    sizes.append(d)
+    sizes = sizes + [d]
+    molecule_id=molecule_id+1
+
     target.append([dipole_moment,polarizability,homo,lumo,gap,
                     enthalpy,free_nrg,heat_capacity])
     features+=tempfeatures
-    return nodes, features, target, A, sizes
+    return nodes, features, target, A, sizes, molecule_id
 
 def load_data3():
     """Load data."""
@@ -78,15 +80,16 @@ def load_data3():
     nodes = np.array([])
     features = [] #features of each node
     A=[] #list of graph adjacency matrices; each entry is the adjacency matrix for one molecule
-    molecule_sizes = [] #list of sizes of molecules; each entry is the size of a molecule
+    sizes = [] #list of sizes of molecules; each entry is the size of a molecule
+    molecule_id = 0
     target = [] #list of "y's" - each entry is an "answer" for a molecule
 
     for file in os.listdir(path):
-        nodes, features, target, A, molecule_sizes = add_sample(path+file,nodes,features,target,A,molecule_sizes)
-    #print("sizes")
-    #print(molecule_sizes)
-    #print(len(molecule_sizes))
-    n = sum(molecule_sizes)
+        nodes, features, target, A, sizes, molecule_id = add_sample(path+file,nodes,features,target,A,sizes,molecule_id)
+
+    molecule_partitions=np.cumsum(sizes) #to get partition positions
+    
+    n = molecule_partitions[-1] #total sum of all nodes
     adj = np.zeros((n,n))
 
     i=0 #index
@@ -126,11 +129,9 @@ def load_data3():
     y_test[test_mask] = labels[test_mask]
     y_val[val_mask] = labels[val_mask]
 
-    feats = sp.csr_matrix(np.array(features))
-    print("whatsup")
-    print(feats[0])
-    molecule_sizes = np.array(molecule_sizes)
-    return sparse_adj, feats, y_train, y_val, y_test, train_mask, val_mask, test_mask, molecule_sizes
+    feats = sp.coo_matrix(np.array(features)).tolil()
+
+    return sparse_adj, feats, y_train, y_val, y_test, train_mask, val_mask, test_mask, molecule_partitions, molecule_id
 
 
 def sparse_to_tuple(sparse_mx):
@@ -178,7 +179,7 @@ def preprocess_adj(adj):
     return sparse_to_tuple(adj_normalized)
 
 
-def construct_feed_dict(features, support, labels, labels_mask, placeholders):
+def construct_feed_dict(features, support, labels, labels_mask, molecule_partitions, num_molecules ,placeholders):
     """Construct feed dictionary."""
     feed_dict = dict()
     feed_dict.update({placeholders['labels']: labels})
@@ -186,6 +187,9 @@ def construct_feed_dict(features, support, labels, labels_mask, placeholders):
     feed_dict.update({placeholders['features']: features})
     feed_dict.update({placeholders['support'][i]: support[i] for i in range(len(support))})
     feed_dict.update({placeholders['num_features_nonzero']: features[1].shape})
+    feed_dict.update({placeholders['molecule_partitions']:molecule_partitions})
+    feed_dict.update({placeholders['num_molecules']:num_molecules})
+
     return feed_dict
 
 
