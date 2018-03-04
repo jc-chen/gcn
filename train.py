@@ -58,8 +58,8 @@ placeholders = {
     'labels': tf.placeholder(tf.float32, shape=(None,y_train.shape[1])),
     'labels_mask': tf.placeholder(tf.int32),
     'dropout': tf.placeholder_with_default(0., shape=()),
-    'num_features_nonzero': tf.placeholder(tf.int32)  # helper variable for sparse dropout
-    'num_molecules': tf.placeholder(tf.int32,shape=mol_sizes)
+    'num_features_nonzero': tf.placeholder(tf.int32),  # helper variable for sparse dropout
+    'num_molecules': tf.placeholder(tf.int32,shape=(mol_sizes.shape))
 }
 
 # Create model
@@ -94,9 +94,9 @@ for epoch in range(FLAGS.epochs):
 
 
     print('Vanilla Pudding')
-    out = sess.run([model.outputs], feed_dict=feed_dict)
-    print(np.array(out[0]).shape)
-
+    out = sess.run([model.test], feed_dict=feed_dict)
+    print(out)
+    exit()
     # Training step
     outs = sess.run([model.opt_op, model.loss, model.accuracy], feed_dict=feed_dict)
 

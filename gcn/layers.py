@@ -65,6 +65,7 @@ class Layer(object):
         self.logging = logging
         self.sparse_inputs = False
         self.num_molecules = None
+        self.num_labels = 0
 
     def _call(self, inputs):
         return inputs
@@ -206,19 +207,22 @@ class ReadOut(Layer):
         self.sparse_inputs = sparse_inputs
         self.featureless = featureless
         self.bias = bias
-
+        self.num_labels = placeholders['labels'].shape[1]
         self.num_molecules = placeholders['num_molecules']
-        
+
+        self.test = None
+
         # helper variable for sparse dropout
         self.num_features_nonzero = placeholders['num_features_nonzero']
 
+        # print("habby wormy")
+        # print(self.num_molecules.shape[0])
         with tf.variable_scope(self.name + '_vars'):
-            #for i in range(num_layers):
-            i=0
-            self.vars['weights_' + str(i)] = glorot([input_dim, output_dim],
-                                                    name='weights_' + str(i))
-            if self.bias:
-                self.vars['bias_' + str(i)] = zeros([output_dim], name='bias_'+str(i))
+            for i in range(self.num_labels):
+                self.vars['weights_' + str(i)] = glorot([input_dim, output_dim],
+                                                        name='weights_' + str(i))
+                if self.bias:
+                    self.vars['bias_' + str(i)] = zeros([output_dim], name='bias_'+str(i))
 
         if self.logging:
             self._log_vars()
@@ -234,18 +238,28 @@ class ReadOut(Layer):
         else:
             x = tf.nn.dropout(x, 1-self.dropout)
 
-        '''this is the part (transform/convolve) that needs to be changed to output desired value'''
-        #for i in range(num_layers):
-        if not self.featureless:
-            pre_sup = dot(x, self.vars['weights_' + str(i)],
-                          sparse=self.sparse_inputs)
-        else:
-            pre_sup = self.vars['weights_' + str(i)]
-        supports = list()
-        support = dot(self.support[i], pre_sup, sparse=True)
-        supports.append(support)
-        output = tf.add_n(supports)
+        # self.test = self.num_molecules[1]
+        
+        # b = tf.slice(x,[0,self.num_molecules[0],0],[1,self.num_molecules[1],x.shape[1]])
 
+        '''this is the part (transform/convolve) that needs to be changed to output desired value'''
+        for j in range(len(self.num_molecules)):
+            c = tf.slice(x,[0,self.num_molecules[j]-1,0],)
+
+
+
+        
+        #     if not self.featureless:
+        #         pre_sup = dot(x, self.vars['weights_' + str(i)],
+        #                       sparse=self.sparse_inputs)
+        #     else:
+        #         pre_sup = self.vars['weights_' + str(i)]
+        #     support = dot(self.support[i], pre_sup, sparse=True)
+        #     supports.append(support)
+        
+        # output = tf.add_n(supports)
+        
+        output = x
         # bias
         if self.bias:
             output += self.vars['bias']
