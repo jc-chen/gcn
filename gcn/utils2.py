@@ -54,6 +54,9 @@ def add_sample(url,nodes,features,target,A,sizes,molecule_id):
   
     tempA = np.zeros((d,d)); #Adjacency matrix
     f=2;
+    #Structure of the features matrix: (in a row)
+    # atomic_no, #_hydrogens, H, C, N, O, F, acceptor, donor, aromatic, hybridization
+    # int, #_hydrogens, one-hot (5 cols), bool, bool, bool, one-hot
     tempfeatures = [[0]*f]*d; # d=#nodes,  f=#features available
     #populate the adjacency matrix
     for tupl in edges:

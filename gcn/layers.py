@@ -285,6 +285,8 @@ class ReadOut(Layer):
         output = tf.gather(output,self.molecule_partitions)
 
         output = tensor_diff(self,output)
+
+        print(output)
         
         #     if not self.featureless:
         #         pre_sup = dot(x, self.vars['weights_' + str(i)],
