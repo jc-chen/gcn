@@ -41,7 +41,7 @@ def add_sample(url,nodes,features,target,A,sizes):
     edges = mol.graph.edges;
     d = len(vertices) #the size of each molecule
     #np.append(nodes,vertices)
-    nodes = np.append(nodes,vertices)
+    #nodes = np.append(nodes,vertices)
     
     dipole_moment = float(properties[6])
     polarizability = float(properties[7])
@@ -126,8 +126,11 @@ def load_data3():
     y_test[test_mask] = labels[test_mask]
     y_val[val_mask] = labels[val_mask]
 
-    feats = sp.coo_matrix(np.array(features)).tolil()
-    return sparse_adj, feats, y_train, y_val, y_test, train_mask, val_mask, test_mask
+    feats = sp.csr_matrix(np.array(features))
+    print("whatsup")
+    print(feats[0])
+    molecule_sizes = np.array(molecule_sizes)
+    return sparse_adj, feats, y_train, y_val, y_test, train_mask, val_mask, test_mask, molecule_sizes
 
 
 def sparse_to_tuple(sparse_mx):

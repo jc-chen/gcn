@@ -27,7 +27,7 @@ flags.DEFINE_integer('early_stopping', 10, 'Tolerance for early stopping (# of e
 flags.DEFINE_integer('max_degree', 3, 'Maximum Chebyshev polynomial degree.')
 
 # Load data
-adj, features, y_train, y_val, y_test, train_mask, val_mask, test_mask = load_data3()
+adj, features, y_train, y_val, y_test, train_mask, val_mask, test_mask,molec_sizes = load_data3()
 
 
 # Some preprocessing
@@ -60,7 +60,8 @@ placeholders = {
     'labels': tf.placeholder(tf.float32, shape=(None,y_train.shape[1])),
     'labels_mask': tf.placeholder(tf.int32),
     'dropout': tf.placeholder_with_default(0., shape=()),
-    'num_features_nonzero': tf.placeholder(tf.int32)  # helper variable for sparse dropout
+    'num_features_nonzero': tf.placeholder(tf.int32),  # helper variable for sparse dropout
+    'num_molecules': tf.placeholder(tf.int64,shape=molec_sizes.shape)
 }
 
 # Create model
