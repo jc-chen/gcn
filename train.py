@@ -97,7 +97,7 @@ for epoch in range(FLAGS.epochs):
     outs = sess.run([model.opt_op, model.loss, model.accuracy], feed_dict=feed_dict)
 
     # Validation
-    cost, acc, duration = evaluate(features, support, y_val, val_mask, placeholders)
+    cost, acc, duration = evaluate(features, support, y_val, val_mask, molecule_partitions, num_molecules, placeholders)
     cost_val.append(cost)
 
     # Print results
@@ -112,6 +112,6 @@ for epoch in range(FLAGS.epochs):
 print("Optimization Finished!")
 
 # Testing
-test_cost, test_acc, test_duration = evaluate(features, support, y_test, test_mask, placeholders)
+test_cost, test_acc, test_duration = evaluate(features, support, y_test, test_mask, molecule_partitions, num_molecules, placeholders)
 print("Test set results:", "cost=", "{:.5f}".format(test_cost),
       "accuracy=", "{:.5f}".format(test_acc), "time=", "{:.5f}".format(test_duration))

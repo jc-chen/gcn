@@ -66,7 +66,10 @@ def add_sample(url,nodes,features,target,A,sizes,molecule_id):
         tempfeatures[v_i][1] = float(vertices[v_i]); #placeholder: second feature
     
     A.append(tempA)
-    sizes = sizes + [d]
+    if (molecule_id == 0):
+        sizes = sizes + [d-1]
+    else:
+        sizes = sizes + [d]
     molecule_id=molecule_id+1
 
     target.append([dipole_moment,polarizability,homo,lumo,gap,
@@ -88,8 +91,9 @@ def load_data3():
         nodes, features, target, A, sizes, molecule_id = add_sample(path+file,nodes,features,target,A,sizes,molecule_id)
 
     molecule_partitions=np.cumsum(sizes) #to get partition positions
-    
-    n = molecule_partitions[-1] #total sum of all nodes
+    print(molecule_partitions[0:5])
+    print(sizes[0:5])
+    n = molecule_partitions[-1]+1 #total sum of all nodes
     adj = np.zeros((n,n))
 
     i=0 #index
@@ -214,3 +218,20 @@ def chebyshev_polynomials(adj, k):
         t_k.append(chebyshev_recurrence(t_k[-1], t_k[-2], scaled_laplacian))
 
     return sparse_to_tuple(t_k)
+
+
+
+
+
+def tensor_diff(self, input_tensor):
+    #builds a matrix like (for an example for 3 molecules):
+    #  [1   0  0]
+    #  [-1  1  0]
+    #  [0  -1  1]
+    # and multiplies it by the input vector to get a difference vector
+        
+    A = tf.eye(self.num_molecules)
+    B = tf.pad(tf.negative(tf.eye(tf.subtract(self.num_molecules,tf.constant(1)))), tf.constant([[1, 0,], [0, 1]]), "CONSTANT")
+    d_tensor = tf.add(A,B)
+    out = tf.matmul(d_tensor,input_tensor)
+    return out

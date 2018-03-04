@@ -1,4 +1,5 @@
 from gcn.inits import *
+from gcn.utils2 import tensor_diff
 import tensorflow as tf
 
 flags = tf.app.flags
@@ -280,6 +281,10 @@ class ReadOut(Layer):
         output = tf.multiply(nn_i,nn_j)
 
         output = tf.cumsum(output)
+
+        output = tf.gather(output,self.molecule_partitions)
+
+        output = tensor_diff(self,output)
         
         #     if not self.featureless:
         #         pre_sup = dot(x, self.vars['weights_' + str(i)],
