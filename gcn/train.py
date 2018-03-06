@@ -63,6 +63,10 @@ model = model_func(placeholders, input_dim=features[2][1], logging=True)
 sess = tf.Session()
 
 
+# Tensorboard stuff
+summary_ops = tf.summary.merge_all()
+summary_writer = tf.summary.FileWriter('/tensorboard',sess.graph)
+
 # Define model evaluation function
 def evaluate(features, support, labels, mask, placeholders):
     t_test = time.time()
@@ -85,7 +89,9 @@ for epoch in range(FLAGS.epochs):
     feed_dict.update({placeholders['dropout']: FLAGS.dropout})
 
     # Training step
-    outs = sess.run([model.opt_op, model.loss, model.accuracy], feed_dict=feed_dict)
+    outs = sess.run([model.opt_op, model.loss, model.accuracy,summary_ops], feed_dict=feed_dict)
+
+    summary_writer.add_summary(outs[3], i)
 
     # Validation
     cost, acc, duration = evaluate(features, support, y_val, val_mask, placeholders)
