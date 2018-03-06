@@ -20,9 +20,10 @@ def masked_accuracy(preds, labels, mask):
     return tf.reduce_mean(accuracy_all)
 
 def square_error(preds, labels, mask):
-    """Accuracy but like, squared error"""
+    """L2 loss refactored to incorporate masks"""
     #n = len(preds)
-    print("square error")
-    accuracy_all = tf.reduce_sum(tf.pow(preds-labels,2))/2.
-    print(tf.reduce_mean(accuracy_all).shape)
-    return tf.reduce_mean(accuracy_all)
+    mask = tf.cast(mask,dtype=tf.float32)
+    mask /= tf.reduce_mean(mask)
+    loss = tf.losses.mean_squared_error(labels,preds)
+    loss *= mask
+    return tf.reduce_mean(loss)

@@ -206,19 +206,21 @@ class JCNN(Model):
         self.build()
 
     def _loss(self):
-        # Weight decay loss
-        for var in self.layers[0].vars.values():
-            self.loss += FLAGS.weight_decay * tf.nn.l2_loss(var)
+        # Weight decay loss (regularization) --uncomment to reduce overfitting
+        #for var in self.layers[0].vars.values():
+        #    self.loss += FLAGS.weight_decay * tf.nn.l2_loss(var)
 
-        # Cross entropy error
-        #self.loss += masked_softmax_cross_entropy(self.outputs, self.placeholders['labels'],
-        #                                          self.placeholders['labels_mask'])
+        # L2 loss
+        self.loss += square_error(self.outputs, self.placeholders['labels'],
+                                    self.placeholders['labels_mask'])
 
     def _accuracy(self):
-        print("shapes")
-        print(self.outputs.shape)
-        print(self.placeholders['labels'].shape)
-        self.accuracy = square_error(self.outputs, self.placeholders['labels'],
+        #print("shapess")
+        #print(self.outputs.shape)
+        #print(self.placeholders['labels'].shape)
+        #self.accuracy = square_error(self.outputs, self.placeholders['labels'],
+        #                                self.placeholders['labels_mask'])
+        self.accuracy = masked_accuracy(self.outputs, self.placeholders['labels'],
                                         self.placeholders['labels_mask'])
 
     def _build(self):
@@ -232,6 +234,62 @@ class JCNN(Model):
                                             logging=self.logging))
 
         self.layers.append(GraphConvolution(input_dim=FLAGS.hidden1,
+                                            output_dim=FLAGS.hidden2,
+                                            placeholders=self.placeholders,
+                                            act=tf.nn.relu,
+                                            dropout=True,
+                                            logging=self.logging))
+
+        self.layers.append(GraphConvolution(input_dim=FLAGS.hidden2,
+                                            output_dim=FLAGS.hidden3,
+                                            placeholders=self.placeholders,
+                                            act=tf.nn.relu,
+                                            dropout=True,
+                                            logging=self.logging))
+        
+        self.layers.append(GraphConvolution(input_dim=FLAGS.hidden3,
+                                            output_dim=FLAGS.hidden4,
+                                            placeholders=self.placeholders,
+                                            act=tf.nn.relu,
+                                            dropout=True,
+                                            logging=self.logging))
+        
+        self.layers.append(GraphConvolution(input_dim=FLAGS.hidden4,
+                                            output_dim=FLAGS.hidden5,
+                                            placeholders=self.placeholders,
+                                            act=tf.nn.relu,
+                                            dropout=True,
+                                            logging=self.logging))
+        
+        self.layers.append(GraphConvolution(input_dim=FLAGS.hidden5,
+                                            output_dim=FLAGS.hidden6,
+                                            placeholders=self.placeholders,
+                                            act=tf.nn.relu,
+                                            dropout=True,
+                                            logging=self.logging))
+
+        self.layers.append(GraphConvolution(input_dim=FLAGS.hidden6,
+                                            output_dim=FLAGS.hidden7,
+                                            placeholders=self.placeholders,
+                                            act=tf.nn.relu,
+                                            dropout=True,
+                                            logging=self.logging))
+
+        self.layers.append(GraphConvolution(input_dim=FLAGS.hidden7,
+                                            output_dim=FLAGS.hidden8,
+                                            placeholders=self.placeholders,
+                                            act=tf.nn.relu,
+                                            dropout=True,
+                                            logging=self.logging))
+
+        self.layers.append(GraphConvolution(input_dim=FLAGS.hidden8,
+                                            output_dim=FLAGS.hidden9,
+                                            placeholders=self.placeholders,
+                                            act=tf.nn.relu,
+                                            dropout=True,
+                                            logging=self.logging))
+
+        self.layers.append(GraphConvolution(input_dim=FLAGS.hidden9,
                                             output_dim=FLAGS.node_output_size,
                                             placeholders=self.placeholders,
                                             act=lambda x: x,

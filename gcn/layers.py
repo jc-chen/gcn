@@ -284,8 +284,10 @@ class ReadOut(Layer):
 
         output = tf.gather(output,self.molecule_partitions)
 
-        output = tensor_diff(self,output)
+        print("WORM")
+        output = tensor_diff(self, output)
 
+        print("HABBY")
         print(output)
         
         #     if not self.featureless:

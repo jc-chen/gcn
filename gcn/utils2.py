@@ -53,21 +53,33 @@ def add_sample(url,nodes,features,target,A,sizes,molecule_id):
     heat_capacity = float(properties[17])
   
     tempA = np.zeros((d,d)); #Adjacency matrix
-    f=2;
     #Structure of the features matrix: (in a row)
-    # atomic_no, #_hydrogens, H, C, N, O, F, acceptor, donor, aromatic, hybridization
-    # int, #_hydrogens, one-hot (5 cols), bool, bool, bool, one-hot
-    tempfeatures = [[0]*f]*d; # d=#nodes,  f=#features available
-    #populate the adjacency matrix
+    # atomic_no, H, C, N, O, F, acceptor, donor, aromatic, hybridization
+    # int, one-hot (5 cols), bool, bool, bool, one-hot
+
+    f = 7
+    tempfeatures = [[0]*f for _ in range(d)]; # d=#nodes,  f=#features available
+
+    #populate the adjacency matrix with intermolecular distances in terms of 1/r
     for tupl in edges:
         tuple_list = list(tupl);
+        #print(tuple_list)
         v_i = tuple_list[0];
         v_j = tuple_list[1];
-        tempA[v_i][v_j] = 1.;
-        tempA[v_j][v_i] = 1.;
-        tempfeatures[v_i][0] = float(vertices[v_i]);
-        tempfeatures[v_i][1] = float(vertices[v_i]); #placeholder: second feature
-    
+        tempA[v_i][v_j] = 1.0/mol.distance_matrix[v_i][v_j];
+        tempA[v_j][v_i] = 1.0/mol.distance_matrix[v_i][v_j];
+        #print(mol.distance_matrix[v_i][v_j],mol.distance_matrix[v_j][v_i])
+
+    for atom in range(len(vertices)):
+        tempfeatures[atom][0] = float(vertices[atom])
+        tempfeatures[atom][1] = int(vertices[atom]==1) #H
+        tempfeatures[atom][2] = int(vertices[atom]==6) #C
+        tempfeatures[atom][3] = int(vertices[atom]==7) #N
+        tempfeatures[atom][4] = int(vertices[atom]==8) #O
+        tempfeatures[atom][5] = int(vertices[atom]==9) #F
+        tempfeatures[atom][6] = list(vertices).count(1) #number of H
+
+        #print(tempfeatures[v_i][1])
     A.append(tempA)
     if (molecule_id == 0):
         sizes = sizes + [d-1]
@@ -94,8 +106,6 @@ def load_data3():
         nodes, features, target, A, sizes, molecule_id = add_sample(path+file,nodes,features,target,A,sizes,molecule_id)
 
     molecule_partitions=np.cumsum(sizes) #to get partition positions
-    print(molecule_partitions[0:5])
-    print(sizes[0:5])
     n = molecule_partitions[-1]+1 #total sum of all nodes
     adj = np.zeros((n,n))
 
@@ -117,6 +127,7 @@ def load_data3():
             t = i
 
     labels = np.array(target)
+
     sparse_adj = sp.csr_matrix(adj);
     #idx_test = range(t,n)
     #idx_train = range(0,v-1)

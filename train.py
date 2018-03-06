@@ -12,22 +12,35 @@ seed = 123
 np.random.seed(seed)
 tf.set_random_seed(seed)
 
+# Load data
+adj, features, y_train, y_val, y_test, train_mask, val_mask, test_mask,molecule_partitions, num_molecules = load_data3()
+
+print("finished loading data")
+
 # Settings
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 flags.DEFINE_string('dataset', 'cora', 'Dataset string.')  # 'cora', 'citeseer', 'pubmed'
 flags.DEFINE_string('model', 'jcnn', 'Model string.')  # 'gcn', 'gcn_cheby', 'dense'
-flags.DEFINE_float('learning_rate', 0.01, 'Initial learning rate.')
+flags.DEFINE_float('learning_rate', 0.1, 'Initial learning rate.')
 flags.DEFINE_integer('epochs', 200, 'Number of epochs to train.')
-flags.DEFINE_integer('hidden1', 16, 'Number of units in hidden layer 1.')
+flags.DEFINE_integer('hidden1', 28, 'Number of units in hidden layer 1.')
+flags.DEFINE_integer('hidden2', 24, 'Number of units in hidden layer 2.')
+flags.DEFINE_integer('hidden3', 38, 'Number of units in hidden layer 3.')
+flags.DEFINE_integer('hidden4', 36, 'Number of units in hidden layer 4.')
+flags.DEFINE_integer('hidden5', 30, 'Number of units in hidden layer 5.')
+flags.DEFINE_integer('hidden6', 30, 'Number of units in hidden layer 6.')
+flags.DEFINE_integer('hidden7', 28, 'Number of units in hidden layer 7.')
+flags.DEFINE_integer('hidden8', 28, 'Number of units in hidden layer 8.')
+flags.DEFINE_integer('hidden9', 30, 'Number of units in hidden layer 9.')
+flags.DEFINE_integer('hidden10', 24, 'Number of units in hidden layer 10.')
+flags.DEFINE_integer('hidden11', 24, 'Number of units in hidden layer 11.')
+flags.DEFINE_integer('hidden12', 24, 'Number of units in hidden layer 12.')
 flags.DEFINE_integer('node_output_size', 10, 'Number of hidden features each node has prior to readout')
 flags.DEFINE_float('dropout', 0.5, 'Dropout rate (1 - keep probability).')
 flags.DEFINE_float('weight_decay', 5e-4, 'Weight for L2 loss on embedding matrix.')
-flags.DEFINE_integer('early_stopping', 10, 'Tolerance for early stopping (# of epochs).')
+flags.DEFINE_integer('early_stopping', 30, 'Tolerance for early stopping (# of epochs).')
 flags.DEFINE_integer('max_degree', 3, 'Maximum Chebyshev polynomial degree.')
-
-# Load data
-adj, features, y_train, y_val, y_test, train_mask, val_mask, test_mask,molecule_partitions, num_molecules = load_data3()
 
 # Some preprocessing
 features = preprocess_features(features)
@@ -92,9 +105,9 @@ for epoch in range(FLAGS.epochs):
     feed_dict = construct_feed_dict(features, support, y_train, train_mask, molecule_partitions, num_molecules, placeholders)
     feed_dict.update({placeholders['dropout']: FLAGS.dropout})
 
-
     # Training step
     outs = sess.run([model.opt_op, model.loss, model.accuracy], feed_dict=feed_dict)
+
 
     # Validation
     cost, acc, duration = evaluate(features, support, y_val, val_mask, molecule_partitions, num_molecules, placeholders)
