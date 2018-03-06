@@ -60,14 +60,14 @@ def add_sample(url,nodes,features,target,A,sizes,molecule_id):
     f = 7
     tempfeatures = [[0]*f for _ in range(d)]; # d=#nodes,  f=#features available
 
-    #populate the adjacency matrix with intermolecular distances in terms of 1/r
+    #populate the adjacency matrix with intermolecular distances in terms of 1/r^2
     for tupl in edges:
         tuple_list = list(tupl);
         #print(tuple_list)
         v_i = tuple_list[0];
         v_j = tuple_list[1];
-        tempA[v_i][v_j] = 1.0/mol.distance_matrix[v_i][v_j];
-        tempA[v_j][v_i] = 1.0/mol.distance_matrix[v_i][v_j];
+        tempA[v_i][v_j] = 1.0/pow(mol.distance_matrix[v_i][v_j],2)
+        tempA[v_j][v_i] = 1.0/pow(mol.distance_matrix[v_i][v_j],2)
         #print(mol.distance_matrix[v_i][v_j],mol.distance_matrix[v_j][v_i])
 
     for atom in range(len(vertices)):
@@ -129,6 +129,7 @@ def load_data3():
     labels = np.array(target)
 
     sparse_adj = sp.csr_matrix(adj);
+
     #idx_test = range(t,n)
     #idx_train = range(0,v-1)
     #idx_val = range(v,t)
@@ -193,7 +194,7 @@ def normalize_adj(adj):
 
 def preprocess_adj(adj):
     """Preprocessing of adjacency matrix for simple GCN model and conversion to tuple representation."""
-    adj_normalized = normalize_adj(adj + sp.eye(adj.shape[0]))
+    adj_normalized = normalize_adj(adj + 100*sp.eye(adj.shape[0]))
     return sparse_to_tuple(adj_normalized)
 
 
@@ -232,9 +233,6 @@ def chebyshev_polynomials(adj, k):
         t_k.append(chebyshev_recurrence(t_k[-1], t_k[-2], scaled_laplacian))
 
     return sparse_to_tuple(t_k)
-
-
-
 
 
 def tensor_diff(self, input_tensor):
