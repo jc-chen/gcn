@@ -97,6 +97,9 @@ sess.run(tf.global_variables_initializer())
 
 cost_val = []
 
+#summary_writer = tf.train.SummaryWriter('/tmp/logs', sess.graph_def)
+
+
 # Train model
 for epoch in range(FLAGS.epochs):
 
@@ -112,6 +115,10 @@ for epoch in range(FLAGS.epochs):
     # Validation
     cost, acc, duration = evaluate(features, support, y_val, val_mask, molecule_partitions, num_molecules, placeholders)
     cost_val.append(cost)
+
+    # Log a summary ever 10 steps
+    #if epoch % 10 == 0:
+    #    summary_writer.add_summary(some_kind_of_summary, epoch)
 
     # Print results
     print("Epoch:", '%04d' % (epoch + 1), "train_loss=", "{:.5f}".format(outs[1]),
