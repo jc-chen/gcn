@@ -46,13 +46,13 @@ def add_sample(url,nodes,features,target,A,sizes,molecule_id,elements_info):
     atomic_number_mean = elements_info[1]
     atomic_number_stdev = elements_info[2]
 
-    dipole_moment = float(properties[6])
-    polarizability = float(properties[7])
-    homo = float(properties[8])
-    lumo = float(properties[9])
-    gap = float(properties[10])
-    enthalpy = float(properties[15])
-    free_nrg = float(properties[16])
+    #dipole_moment = float(properties[6])
+    #polarizability = float(properties[7])
+    #homo = float(properties[8])
+    #lumo = float(properties[9])
+    #gap = float(properties[10])
+    #enthalpy = float(properties[15])
+    #free_nrg = float(properties[16])
     heat_capacity = float(properties[17])
   
     tempA = np.zeros((d,d)); #Adjacency matrix
@@ -75,6 +75,7 @@ def add_sample(url,nodes,features,target,A,sizes,molecule_id,elements_info):
 
     for atom in range(len(vertices)):
         tempfeatures[atom][0] = (float(vertices[atom])-atomic_number_mean)/atomic_number_stdev
+        tempfeatures[atom][1] = int(vertices[atom]==1) #H
         tempfeatures[atom][2] = int(vertices[atom]==6) #C
         tempfeatures[atom][3] = int(vertices[atom]==7) #N
         tempfeatures[atom][4] = int(vertices[atom]==8) #O
@@ -89,8 +90,9 @@ def add_sample(url,nodes,features,target,A,sizes,molecule_id,elements_info):
         sizes = sizes + [d]
     molecule_id=molecule_id+1
 
-    target.append([dipole_moment,polarizability,homo,lumo,gap,
-                    enthalpy,free_nrg,heat_capacity])
+    target.append([heat_capacity])
+    #target.append([dipole_moment,polarizability,homo,lumo,gap,
+    #                enthalpy,free_nrg,heat_capacity])
     features+=tempfeatures
     return nodes, features, target, A, sizes, molecule_id
 
@@ -117,8 +119,6 @@ def load_data3():
     n = molecule_partitions[-1]+1 #total sum of all nodes
     adj = np.zeros((n,n))
 
-
-
     i=0 #index
     j=0
     v=0
@@ -136,7 +136,8 @@ def load_data3():
             #where the test set begins
             t = i
 
-    labels = np.array(target)
+    target = np.array(target)
+    labels = (target-np.mean(target))/np.std(target)
 
     sparse_adj = sp.csr_matrix(adj);
 
