@@ -107,6 +107,7 @@ class MLP(Model):
         # Cross entropy error
         self.loss += masked_softmax_cross_entropy(self.outputs, self.placeholders['labels'],
                                                   self.placeholders['labels_mask'])
+        tf.summary.scalar('loss', self.loss)
 
     def _accuracy(self):
         self.accuracy = masked_accuracy(self.outputs, self.placeholders['labels'],
