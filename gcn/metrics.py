@@ -26,7 +26,7 @@ def masked_accuracy(preds, labels, mask):
     print(labels.shape)
     print("MROW")
     mask = tf.expand_dims(mask,-1)
-    mask = tf.tile(mask,[1,8])
+    mask = tf.tile(mask,tf.stack([tf.constant(1),tf.shape(labels)[1]],axis=0))
     mask /= tf.reduce_mean(mask)
     print(mask.shape)
     accuracy_all *= mask
