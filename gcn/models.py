@@ -178,7 +178,6 @@ class GCN(Model):
                                             logging=self.logging))
 
     def predict(self):
-        print("hello darkness my old friend\n")
         return tf.nn.softmax(self.outputs)
 #TODO: change the softmax to a more suitable function
 
@@ -216,11 +215,6 @@ class JCNN(Model):
                                     self.placeholders['labels_mask'])
 
     def _accuracy(self):
-        #print("shapess")
-        #print(self.outputs.shape)
-        #print(self.placeholders['labels'].shape)
-        #self.accuracy = square_error(self.outputs, self.placeholders['labels'],
-        #                                self.placeholders['labels_mask'])
         self.accuracy = masked_accuracy(self.outputs, self.placeholders['labels'],
                                         self.placeholders['labels_mask'])
 

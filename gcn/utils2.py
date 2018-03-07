@@ -245,5 +245,5 @@ def tensor_diff(self, input_tensor):
     A = tf.eye(self.num_molecules)
     B = tf.pad(tf.negative(tf.eye(tf.subtract(self.num_molecules,tf.constant(1)))), tf.constant([[1, 0,], [0, 1]]), "CONSTANT")
     d_tensor = tf.add(A,B)
-    out = tf.matmul(d_tensor,input_tensor)
+    out = tf.matmul(d_tensor,input_tensor, name="output_after_tensorDiff")
     return out

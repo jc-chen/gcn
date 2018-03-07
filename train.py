@@ -16,7 +16,7 @@ tf.set_random_seed(seed)
 adj, features, y_train, y_val, y_test, train_mask, val_mask, test_mask,molecule_partitions, num_molecules = load_data3()
 
 print("finished loading data")
-
+print(type(y_train[0][0]))
 # Settings
 flags = tf.app.flags
 FLAGS = flags.FLAGS
@@ -67,9 +67,9 @@ else:
 placeholders = {
     'support': [tf.sparse_placeholder(tf.float32) for _ in range(num_supports)],
     'features': tf.sparse_placeholder(tf.float32, shape=tf.constant(features[2], dtype=tf.int64)),
-    'labels': tf.placeholder(tf.float32, shape=(None,y_train.shape[1])),
-    'labels_mask': tf.placeholder(tf.int32),
-    'dropout': tf.placeholder_with_default(0., shape=()),
+    'labels': tf.placeholder(tf.float32, shape=(None,y_train.shape[1]), name='the_labels_meow'),
+    'labels_mask': tf.placeholder(tf.int32, name='the_mask_of_labels'),
+    'dropout': tf.placeholder_with_default(0., shape=(), name='dropout_meow'),
     'num_features_nonzero': tf.placeholder(tf.int32),  # helper variable for sparse dropout
     'molecule_partitions': tf.placeholder(tf.int32,shape=(molecule_partitions.shape)),
     'num_molecules': tf.placeholder(tf.int32,shape=())
@@ -117,7 +117,7 @@ for epoch in range(FLAGS.epochs):
     feed_dict.update({placeholders['dropout']: FLAGS.dropout})
 
     # Training step
-    outs = sess.run([model.opt_op, model.loss, model.accuracy,summary_ops], feed_dict=feed_dict)
+    outs = sess.run([model.opt_op, model.loss, model.accuracy,summary_ops,model.outputs], feed_dict=feed_dict)
 
     summary_writer.add_summary(outs[3], i)
     summary_writer.flush()
@@ -126,6 +126,7 @@ for epoch in range(FLAGS.epochs):
     cost, acc, duration = evaluate(features, support, y_val, val_mask, molecule_partitions, num_molecules, placeholders)
     cost_val.append(cost)
 
+    print(type(outs[4][1]),outs[4])
     # Log a summary ever 10 steps
     #if epoch % 10 == 0:
     #    summary_writer.add_summary(some_kind_of_summary, epoch)
