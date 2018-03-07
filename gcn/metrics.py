@@ -28,8 +28,7 @@ def masked_accuracy(preds, labels, mask):
     mask = tf.expand_dims(mask,-1)
     mask = tf.tile(mask,tf.stack([tf.constant(1),tf.shape(labels)[1]],axis=0))
     mask /= tf.reduce_mean(mask)
-    print(mask.shape)
-    accuracy_all *= mask
+    #accuracy_all *= mask
     return tf.reduce_mean(accuracy_all)
 
 def square_error(preds, labels, mask):
@@ -38,8 +37,8 @@ def square_error(preds, labels, mask):
     print("MEow Mwoe")
     mask = tf.cast(mask,dtype=tf.float32)
     mask = tf.expand_dims(mask,-1)
-    mask = tf.tile(mask,[1,8])
+    mask = tf.tile(mask,[1,1])
     mask /= tf.reduce_mean(mask)
     loss = tf.losses.mean_squared_error(labels,preds,reduction=tf.losses.Reduction.NONE)
-    loss *= mask
+    #loss *= mask
     return tf.reduce_mean(loss)

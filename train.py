@@ -22,7 +22,7 @@ flags = tf.app.flags
 FLAGS = flags.FLAGS
 flags.DEFINE_string('dataset', 'cora', 'Dataset string.')  # 'cora', 'citeseer', 'pubmed'
 flags.DEFINE_string('model', 'jcnn', 'Model string.')  # 'gcn', 'gcn_cheby', 'dense'
-flags.DEFINE_float('learning_rate', 0.1, 'Initial learning rate.')
+flags.DEFINE_float('learning_rate', 0.01, 'Initial learning rate.')
 flags.DEFINE_integer('epochs', 200, 'Number of epochs to train.')
 flags.DEFINE_integer('hidden1', 28, 'Number of units in hidden layer 1.')
 flags.DEFINE_integer('hidden2', 24, 'Number of units in hidden layer 2.')
@@ -126,7 +126,7 @@ for epoch in range(FLAGS.epochs):
     cost, acc, duration = evaluate(features, support, y_val, val_mask, molecule_partitions, num_molecules, placeholders)
     cost_val.append(cost)
 
-    print(type(outs[4][1]),outs[4])
+    #print(type(outs[4][1]),outs[4])
     # Log a summary ever 10 steps
     #if epoch % 10 == 0:
     #    summary_writer.add_summary(some_kind_of_summary, epoch)
