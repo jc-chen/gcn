@@ -28,7 +28,7 @@ def get_atomic_features(n):
     return
 
 
-def add_sample(url,nodes,features,target,A,sizes,molecule_id):
+def add_sample(url,nodes,features,target,A,sizes,molecule_id,elements_info):
     properties = [];
     with open(url,'r') as file:
         for row in file:
@@ -43,6 +43,9 @@ def add_sample(url,nodes,features,target,A,sizes,molecule_id):
     #np.append(nodes,vertices)
     #nodes = np.append(nodes,vertices)
     
+    atomic_number_mean = elements_info[1]
+    atomic_number_stdev = elements_info[2]
+
     dipole_moment = float(properties[6])
     polarizability = float(properties[7])
     homo = float(properties[8])
@@ -57,7 +60,7 @@ def add_sample(url,nodes,features,target,A,sizes,molecule_id):
     # atomic_no, H, C, N, O, F, acceptor, donor, aromatic, hybridization
     # int, one-hot (5 cols), bool, bool, bool, one-hot
 
-    f = 7
+    f = 6
     tempfeatures = [[0]*f for _ in range(d)]; # d=#nodes,  f=#features available
 
     #populate the adjacency matrix with intermolecular distances in terms of 1/r^2
@@ -71,13 +74,12 @@ def add_sample(url,nodes,features,target,A,sizes,molecule_id):
         #print(mol.distance_matrix[v_i][v_j],mol.distance_matrix[v_j][v_i])
 
     for atom in range(len(vertices)):
-        tempfeatures[atom][0] = float(vertices[atom])
-        tempfeatures[atom][1] = int(vertices[atom]==1) #H
+        tempfeatures[atom][0] = (float(vertices[atom])-atomic_number_mean)/atomic_number_stdev
         tempfeatures[atom][2] = int(vertices[atom]==6) #C
         tempfeatures[atom][3] = int(vertices[atom]==7) #N
         tempfeatures[atom][4] = int(vertices[atom]==8) #O
         tempfeatures[atom][5] = int(vertices[atom]==9) #F
-        tempfeatures[atom][6] = list(vertices).count(1) #number of H
+        #tempfeatures[atom][6] = list(vertices).count(1) #number of H
 
         #print(tempfeatures[v_i][1])
     A.append(tempA)
@@ -102,12 +104,20 @@ def load_data3():
     molecule_id = 0
     target = [] #list of "y's" - each entry is an "answer" for a molecule
 
+    # Info for standardizing data
+    elements = np.array([1,6,7,8,9])
+    elements_mean = np.mean(elements)
+    elements_stdev = np.std(elements)
+    elements_all = [elements, elements_mean, elements_stdev]
+
     for file in os.listdir(path):
-        nodes, features, target, A, sizes, molecule_id = add_sample(path+file,nodes,features,target,A,sizes,molecule_id)
+        nodes, features, target, A, sizes, molecule_id = add_sample(path+file,nodes,features,target,A,sizes,molecule_id,elements_all)
 
     molecule_partitions=np.cumsum(sizes) #to get partition positions
     n = molecule_partitions[-1]+1 #total sum of all nodes
     adj = np.zeros((n,n))
+
+
 
     i=0 #index
     j=0
@@ -149,7 +159,6 @@ def load_data3():
     y_val[val_mask] = labels[val_mask]
 
     feats = sp.coo_matrix(np.array(features)).tolil()
-
     return sparse_adj, feats, y_train, y_val, y_test, train_mask, val_mask, test_mask, molecule_partitions, molecule_id
 
 
