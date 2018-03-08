@@ -256,6 +256,7 @@ class ReadOut(Layer):
         # dropout
         if self.sparse_inputs:
             x = sparse_dropout(x, 1-self.dropout, self.num_features_nonzero)
+            x = tf.sparse_tensor_to_dense(x,validate_indices=False)
         else:
             x = tf.nn.dropout(x, 1-self.dropout)
 
@@ -278,8 +279,8 @@ class ReadOut(Layer):
         nn_i = tf.sigmoid(nn_i)
         nn_j = tf.nn.relu(nn_j)
 
-        output = tf.multiply(nn_i,nn_j)
-
+        #output = tf.multiply(nn_i,nn_j)
+        output = nn_i
         output = tf.cumsum(output)
 
         output = tf.gather(output,self.molecule_partitions)

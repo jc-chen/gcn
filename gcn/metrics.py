@@ -20,7 +20,7 @@ def masked_accuracy_new(preds, labels, mask):
 
 def masked_accuracy(preds, labels, mask):
     """Accuracy with masking."""
-    correct_prediction = tf.logical_and(tf.less(preds,labels*1.1),tf.greater(preds,labels*0.9))
+    correct_prediction = tf.logical_and(tf.less(preds,labels*1.5),tf.greater(preds,labels*0.5))
     accuracy_all = tf.cast(correct_prediction, tf.float32)
     mask = tf.cast(mask, dtype=tf.float32)
     print(labels.shape)
@@ -38,7 +38,7 @@ def square_error(preds, labels, mask):
     mask = tf.cast(mask,dtype=tf.float32)
     mask = tf.expand_dims(mask,-1)
     mask = tf.tile(mask,[1,1])
-    mask /= tf.reduce_mean(mask)
+    #mask /= tf.reduce_mean(mask)
     loss = tf.losses.mean_squared_error(labels,preds,reduction=tf.losses.Reduction.NONE)
-    #loss *= mask
+    loss *= mask
     return tf.reduce_mean(loss)

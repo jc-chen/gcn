@@ -28,7 +28,7 @@ def get_atomic_features(n):
     return
 
 
-def add_sample(url,nodes,features,target,A,sizes,molecule_id,elements_info):
+def add_sample(maxi,url,nodes,features,target,A,sizes,molecule_id,elements_info):
     properties = [];
     with open(url,'r') as file:
         for row in file:
@@ -71,6 +71,14 @@ def add_sample(url,nodes,features,target,A,sizes,molecule_id,elements_info):
         v_j = tuple_list[1];
         tempA[v_i][v_j] = 1.0/pow(mol.distance_matrix[v_i][v_j],2)
         tempA[v_j][v_i] = 1.0/pow(mol.distance_matrix[v_i][v_j],2)
+        if(mol.distance_matrix[v_i][v_j] < maxi[0]):
+            maxi[0] = mol.distance_matrix[v_i][v_j]
+        if(mol.distance_matrix[v_j][v_i] < maxi[0]):
+            maxi[0] = mol.distance_matrix[v_j][v_i]
+        if(mol.distance_matrix[v_i][v_j] > maxi[1]):
+            maxi[1] = mol.distance_matrix[v_i][v_j]
+        if(mol.distance_matrix[v_j][v_i] > maxi[1]):
+            maxi[1] = mol.distance_matrix[v_j][v_i]
         #print(mol.distance_matrix[v_i][v_j],mol.distance_matrix[v_j][v_i])
 
     for atom in range(len(vertices)):
@@ -94,7 +102,7 @@ def add_sample(url,nodes,features,target,A,sizes,molecule_id,elements_info):
     #target.append([dipole_moment,polarizability,homo,lumo,gap,
     #                enthalpy,free_nrg,heat_capacity])
     features+=tempfeatures
-    return nodes, features, target, A, sizes, molecule_id
+    return maxi,nodes, features, target, A, sizes, molecule_id
 
 def load_data3():
     """Load data."""
@@ -106,6 +114,7 @@ def load_data3():
     molecule_id = 0
     target = [] #list of "y's" - each entry is an "answer" for a molecule
 
+    maxi=[10.,0.]
     # Info for standardizing data
     elements = np.array([1,6,7,8,9])
     elements_mean = np.mean(elements)
@@ -113,8 +122,9 @@ def load_data3():
     elements_all = [elements, elements_mean, elements_stdev]
 
     for file in os.listdir(path):
-        nodes, features, target, A, sizes, molecule_id = add_sample(path+file,nodes,features,target,A,sizes,molecule_id,elements_all)
+        maxi,nodes, features, target, A, sizes, molecule_id = add_sample(maxi,path+file,nodes,features,target,A,sizes,molecule_id,elements_all)
 
+    print(maxi)
     molecule_partitions=np.cumsum(sizes) #to get partition positions
     n = molecule_partitions[-1]+1 #total sum of all nodes
     adj = np.zeros((n,n))
@@ -138,15 +148,14 @@ def load_data3():
 
     target = np.array(target)
     labels = (target-np.mean(target))/np.std(target)
-
     sparse_adj = sp.csr_matrix(adj);
 
     #idx_test = range(t,n)
     #idx_train = range(0,v-1)
     #idx_val = range(v,t)
-    idx_train = range(600)
-    idx_val = range(600,900)
-    idx_test = range(900,1000)
+    idx_train = range(1)
+    idx_val = range(1,2)
+    idx_test = range(2,3)
 
     train_mask = sample_mask(idx_train, labels.shape[0])
     val_mask = sample_mask(idx_val, labels.shape[0])
@@ -160,6 +169,7 @@ def load_data3():
     y_val[val_mask] = labels[val_mask]
 
     feats = sp.coo_matrix(np.array(features)).tolil()
+
     return sparse_adj, feats, y_train, y_val, y_test, train_mask, val_mask, test_mask, molecule_partitions, molecule_id
 
 
@@ -204,7 +214,7 @@ def normalize_adj(adj):
 
 def preprocess_adj(adj):
     """Preprocessing of adjacency matrix for simple GCN model and conversion to tuple representation."""
-    adj_normalized = normalize_adj(adj + 100*sp.eye(adj.shape[0]))
+    adj_normalized = normalize_adj(adj + 10.0*sp.eye(adj.shape[0]))
     return sparse_to_tuple(adj_normalized)
 
 
@@ -246,7 +256,7 @@ def chebyshev_polynomials(adj, k):
 
 
 def tensor_diff(self, input_tensor):
-    #builds a matrix like (for an example for 3 molecules):
+    #builds an m by m matrix like (for example for 3 molecules):
     #  [1   0  0]
     #  [-1  1  0]
     #  [0  -1  1]
