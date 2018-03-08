@@ -276,8 +276,8 @@ class ReadOut(Layer):
             nn_j += self.vars['bias_j']
 
 
-        nn_i = tf.sigmoid(nn_i)
-        nn_j = tf.nn.relu(nn_j)
+        nn_i = nn_i
+        nn_j = tf.nn.tanh(nn_j)
 
         #output = tf.multiply(nn_i,nn_j)
         output = nn_i

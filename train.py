@@ -26,7 +26,7 @@ def turmoil_func():
     m=4
     p=3
     partits = tf.constant([2,3,7,9])
-    outputter = tf.constant([[1,2,3],[4,5,6],[7,8,9],[10,11,12],[0,0,0],[0,1,2],[3,4,5],[6,7,8],[0,1,2],[0.5,0,1]])
+    outputter = tf.constant([[-1.0,2,-3],[4,-5,6],[-7,8,9],[-10,-11,-12],[0,0,0],[0,1,2],[3,4,5],[6,7,8],[0,1,2],[0.5,0,1]])
     outputter = tf.cumsum(outputter)
     outputter = tf.gather(outputter,partits)
     outputter = test(m,outputter)
@@ -48,19 +48,38 @@ def squared_error(preds, labels, mask):
     mask = tf.tile(mask,[1,2])
     mask /= tf.reduce_mean(mask)
     loss = tf.losses.mean_squared_error(labels,preds,reduction=tf.losses.Reduction.NONE)
-    loss *= mask
+    loss = tf.multiply(loss,mask)
     return tf.reduce_mean(loss)
+
+
+def masked_accuracy(preds, labels, mask):
+    """Accuracy with masking."""
+    mask=tf.transpose(mask)
+    mask = tf.cast(mask, dtype=tf.float32)
+    mask = tf.expand_dims(mask,-1)
+    mask = tf.tile(mask,[1,labels.shape[1]])
+    mask /= tf.reduce_mean(mask)
+    mnabserr = tf.metrics.mean_absolute_error(labels,preds)
+    accuracy_all = tf.multiply(mnabserr,mask)
+    #correct_prediction = tf.logical_and(tf.less(preds,labels*1.5),tf.greater(preds,labels*0.5))
+    #accuracy_all = tf.cast(correct_prediction, tf.float32)
+    #accuracy_all *= mask
+    return tf.reduce_mean(accuracy_all)
 
 def wtf2():
     #run the graph
-    pred = tf.constant([[5.],[9],[3]])
-    labs = tf.constant([[2.],[7],[10]])
-    mask = tf.constant([1,1,0])
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
-        outs = sess.run([squared_error(pred,labs,mask)],feed_dict=None)
+        pred = tf.constant([[5.],[9],[3]])
+        labs = tf.constant([[3.],[10],[10]])
+        mask = tf.constant([1,0,1])
+        outs = sess.run([masked_accuracy(pred,labs,mask)],feed_dict=None)
         print(outs)
     exit()
+
+wtf2()
+
+
 
 
 
@@ -81,13 +100,13 @@ flags = tf.app.flags
 FLAGS = flags.FLAGS
 flags.DEFINE_string('dataset', 'cora', 'Dataset string.')  # 'cora', 'citeseer', 'pubmed'
 flags.DEFINE_string('model', 'jcnn', 'Model string.')  # 'gcn', 'gcn_cheby', 'dense'
-flags.DEFINE_float('learning_rate', 0.01, 'Initial learning rate.')
+flags.DEFINE_float('learning_rate', 0.8, 'Initial learning rate.')
 flags.DEFINE_integer('epochs', 1000, 'Number of epochs to train.')
-flags.DEFINE_integer('hidden1', 26, 'Number of units in hidden layer 1.')
-flags.DEFINE_integer('hidden2', 18, 'Number of units in hidden layer 2.')
-flags.DEFINE_integer('hidden3', 38, 'Number of units in hidden layer 3.')
-flags.DEFINE_integer('hidden4', 36, 'Number of units in hidden layer 4.')
-flags.DEFINE_integer('hidden5', 30, 'Number of units in hidden layer 5.')
+flags.DEFINE_integer('hidden1', 36, 'Number of units in hidden layer 1.')
+flags.DEFINE_integer('hidden2', 30, 'Number of units in hidden layer 2.')
+flags.DEFINE_integer('hidden3', 34, 'Number of units in hidden layer 3.')
+flags.DEFINE_integer('hidden4', 28, 'Number of units in hidden layer 4.')
+flags.DEFINE_integer('hidden5', 22, 'Number of units in hidden layer 5.')
 flags.DEFINE_integer('hidden6', 30, 'Number of units in hidden layer 6.')
 flags.DEFINE_integer('hidden7', 28, 'Number of units in hidden layer 7.')
 flags.DEFINE_integer('hidden8', 28, 'Number of units in hidden layer 8.')
@@ -98,7 +117,7 @@ flags.DEFINE_integer('hidden12', 24, 'Number of units in hidden layer 12.')
 flags.DEFINE_integer('node_output_size', 10, 'Number of hidden features each node has prior to readout')
 flags.DEFINE_float('dropout', 0.5, 'Dropout rate (1 - keep probability).')
 flags.DEFINE_float('weight_decay', 5e-4, 'Weight for L2 loss on embedding matrix.')
-flags.DEFINE_integer('early_stopping', 200, 'Tolerance for early stopping (# of epochs).')
+flags.DEFINE_integer('early_stopping', 100, 'Tolerance for early stopping (# of epochs).')
 flags.DEFINE_integer('max_degree', 3, 'Maximum Chebyshev polynomial degree.')
 
 # Some preprocessing
@@ -183,6 +202,10 @@ for epoch in range(FLAGS.epochs):
     cost, acc, duration = evaluate(features, support, y_val, val_mask, molecule_partitions, num_molecules, placeholders)
     cost_val.append(cost)
 
+    if (epoch == 150):
+        FLAGS.learning_rate = 0.01
+        print(FLAGS.learning_rate)
+
     #print(y_train[1])
 
     #print(type(outs[4][1]),outs[4])
@@ -192,7 +215,7 @@ for epoch in range(FLAGS.epochs):
 
     # Print results
     print("Epoch:", '%04d' % (epoch + 1), "train_loss=", "{:.5f}".format(outs[1]),
-          "train_acc=", "{:.5f}".format(outs[2]), "val_loss=", "{:.5f}".format(cost),
+          "val_loss=", "{:.5f}".format(cost), "train_acc=", "{:.5f}".format(outs[2]),
           "val_acc=", "{:.5f}".format(acc), "time=", "{:.5f}".format(time.time() - t))
     print(outs[4][0],y_train[0])
     if epoch > FLAGS.early_stopping and cost_val[-1] > np.mean(cost_val[-(FLAGS.early_stopping+1):-1]):

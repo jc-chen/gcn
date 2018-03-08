@@ -60,7 +60,7 @@ def add_sample(maxi,url,nodes,features,target,A,sizes,molecule_id,elements_info)
     # atomic_no, H, C, N, O, F, acceptor, donor, aromatic, hybridization
     # int, one-hot (5 cols), bool, bool, bool, one-hot
 
-    f = 6
+    f = 7
     tempfeatures = [[0]*f for _ in range(d)]; # d=#nodes,  f=#features available
 
     #populate the adjacency matrix with intermolecular distances in terms of 1/r^2
@@ -88,7 +88,8 @@ def add_sample(maxi,url,nodes,features,target,A,sizes,molecule_id,elements_info)
         tempfeatures[atom][3] = int(vertices[atom]==7) #N
         tempfeatures[atom][4] = int(vertices[atom]==8) #O
         tempfeatures[atom][5] = int(vertices[atom]==9) #F
-        #tempfeatures[atom][6] = list(vertices).count(1) #number of H
+        tempfeatures[atom][6] = 1.0/(list(vertices).count(1)+1.0) #number of H
+
 
         #print(tempfeatures[v_i][1])
     A.append(tempA)
@@ -153,9 +154,9 @@ def load_data3():
     #idx_test = range(t,n)
     #idx_train = range(0,v-1)
     #idx_val = range(v,t)
-    idx_train = range(1)
-    idx_val = range(1,2)
-    idx_test = range(2,3)
+    idx_train = range(600)
+    idx_val = range(600,900)
+    idx_test = range(900,1000)
 
     train_mask = sample_mask(idx_train, labels.shape[0])
     val_mask = sample_mask(idx_val, labels.shape[0])

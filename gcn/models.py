@@ -220,34 +220,51 @@ class JCNN(Model):
 
     def _build(self):
 
-        # self.layers.append(GraphConvolution(input_dim=self.input_dim,
-        #                                     output_dim=FLAGS.hidden1,
-        #                                     placeholders=self.placeholders,
-        #                                     act=tf.nn.relu,
-        #                                     dropout=True,
-        #                                     sparse_inputs=True,
-        #                                     logging=self.logging))
+        self.layers.append(GraphConvolution(input_dim=self.input_dim,
+                                            output_dim=FLAGS.hidden1,
+                                            placeholders=self.placeholders,
+                                            act=tf.nn.relu,
+                                            dropout=False,
+                                            sparse_inputs=True,
+                                            logging=self.logging))
 
-        # self.layers.append(GraphConvolution(input_dim=FLAGS.hidden1,
-        #                                     output_dim=FLAGS.hidden2,
-        #                                     placeholders=self.placeholders,
-        #                                     act=tf.nn.relu,
-        #                                     dropout=True,
-        #                                     logging=self.logging))
+        self.layers.append(GraphConvolution(input_dim=FLAGS.hidden1,
+                                            output_dim=FLAGS.hidden2,
+                                            placeholders=self.placeholders,
+                                            act=tf.nn.relu,
+                                            dropout=False,
+                                            logging=self.logging))
 
-        # self.layers.append(GraphConvolution(input_dim=FLAGS.hidden2,
-        #                                     output_dim=FLAGS.node_output_size,
-        #                                     placeholders=self.placeholders,
-        #                                     act=lambda x: x,
-        #                                     dropout=True,
-        #                                     logging=self.logging))
+        self.layers.append(GraphConvolution(input_dim=FLAGS.hidden2,
+                                            output_dim=FLAGS.hidden3,
+                                            placeholders=self.placeholders,
+                                            act=tf.nn.relu,
+                                            dropout = True,
+                                            bias=True,
+                                            logging=self.logging))
+
+        self.layers.append(GraphConvolution(input_dim=FLAGS.hidden3,
+                                            output_dim=FLAGS.hidden4,
+                                            placeholders=self.placeholders,
+                                            act=tf.nn.relu,
+                                            dropout=True,
+                                            logging=self.logging))
+
+        self.layers.append(GraphConvolution(input_dim=FLAGS.hidden4,
+                                            output_dim=FLAGS.node_output_size,
+                                            placeholders=self.placeholders,
+                                            act=tf.nn.tanh,
+                                            bias=True,
+                                            dropout=False,
+                                            logging=self.logging))
         
-        self.layers.append(ReadOut(input_dim=self.input_dim, 
+        self.layers.append(ReadOut(input_dim=FLAGS.node_output_size, 
                                     output_dim=self.molecule_number_of_outputs,
                                     placeholders=self.placeholders,
                                     act=lambda x: x,
                                     dropout=False,
-                                    sparse_inputs=True,
+                                    bias=True,
+                                    sparse_inputs=False,
                                     logging=self.logging))
     def predict(self):
         return self.outputs #tf.nn.softmax(self.outputs)
