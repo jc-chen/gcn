@@ -21,7 +21,7 @@ def masked_accuracy(preds, labels, mask):
     #accuracy_all = tf.multiply(mnabserr,mask)
     #accuracy_all *= mask
     
-    loss = tf.losses.mean_squared_error(labels,preds,reduction=tf.losses.Reduction.NONE)
+    loss = tf.sqrt(tf.losses.mean_squared_error(labels,preds,reduction=tf.losses.Reduction.NONE))
     loss = tf.multiply(loss,mask)
     return tf.reduce_mean(loss)
 

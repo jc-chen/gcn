@@ -59,6 +59,7 @@ def add_sample(url,features,target,A,sizes,molecule_id,elements_info):
         #free_nrg = float(properties[16])
         heat_capacity = float(properties[17])
   
+  
         tempA = np.zeros((d,d)); #Adjacency matrix
         #Structure of the features matrix: (in a row)
         # atomic_no, H, C, N, O, F, acceptor, donor, aromatic, hybridization
@@ -103,7 +104,7 @@ def add_sample(url,features,target,A,sizes,molecule_id,elements_info):
         return features, target, A, sizes, molecule_id
     except:
         #Write problem file name
-        problematic_files = open("problematics.txt","w")
+        problematic_files = open("problematics.txt","a+")
         problematic_files.write(str(molecule_id)+" :  "+str(url)+" \n")
         problematic_files.close()
         return features, target, A, sizes, molecule_id
@@ -112,7 +113,7 @@ def add_sample(url,features,target,A,sizes,molecule_id,elements_info):
 
 def load_data3():
     """Load data."""
-    path="../tem/"
+    path="../tem_1000/"
     features = [] #features of each node
     A=[] #list of graph adjacency matrices; each entry is the adjacency matrix for one molecule
     sizes = [] #list of sizes of molecules; each entry is the size of a molecule

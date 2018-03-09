@@ -1,0 +1,6 @@
+G
+Epochs: 467
+train_loss= 1.0032892  train_acc= 0.75717473
+val_loss= 1.0972937  val_acc= 0.739318
+Test cost= 0.8900929  Test_acc= 0.6924687
+

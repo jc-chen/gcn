@@ -100,7 +100,7 @@ flags = tf.app.flags
 FLAGS = flags.FLAGS
 flags.DEFINE_string('dataset', 'cora', 'Dataset string.')  # 'cora', 'citeseer', 'pubmed'
 flags.DEFINE_string('model', 'jcnn', 'Model string.')  # 'gcn', 'gcn_cheby', 'dense'
-flags.DEFINE_float('learning_rate', 5.0, 'Initial learning rate.')
+flags.DEFINE_float('learning_rate', 3.0, 'Initial learning rate.')
 flags.DEFINE_integer('epochs', 5000, 'Number of epochs to train.')
 flags.DEFINE_integer('hidden1', 36, 'Number of units in hidden layer 1.')
 flags.DEFINE_integer('hidden2', 30, 'Number of units in hidden layer 2.')
@@ -205,23 +205,22 @@ for epoch in range(FLAGS.epochs):
     if (epoch == 100):
         FLAGS.learning_rate = 1.0
         print("Changing learning rate to: ", FLAGS.learning_rate)
-    if (epoch == 300):
+    if (epoch == 200):
         FLAGS.learning_rate = 0.5
         print("Changing learning rate to: ", FLAGS.learning_rate)
-    if (epoch == 400):
+    if (epoch == 300):
         FLAGS.learning_rate = 0.1
         print("Changing learning rate to: ", FLAGS.learning_rate)
-    if (epoch == 600):
+    if (epoch == 500):
         FLAGS.learning_rate = 0.05
         print("Changing learning rate to: ", FLAGS.learning_rate)
     if (epoch == 1000):
         FLAGS.learning_rate = 0.01
         print("Changing learning rate to: ", FLAGS.learning_rate)
+    if (epoch == 3000):
+        FLAGS.learning_rate = 0.001
+        print("Changing learning rate to: ", FLAGS.learning_rate)
 
-
-    #print(y_train[1])
-
-    #print(type(outs[4][1]),outs[4])
     # Log a summary ever 10 steps
     #if epoch % 10 == 0:
     #    summary_writer.add_summary(some_kind_of_summary, epoch)
@@ -230,10 +229,13 @@ for epoch in range(FLAGS.epochs):
     print("Epoch:", '%04d' % (epoch + 1), "train_loss=", "{:.5f}".format(outs[1]),
           "val_loss=", "{:.5f}".format(cost), "train_acc=", "{:.5f}".format(outs[2]),
           "val_acc=", "{:.5f}".format(acc), "time=", "{:.5f}".format(time.time() - t))
-    print(outs[4][0],y_train[0])
+
     if epoch > FLAGS.early_stopping and cost_val[-1] > np.mean(cost_val[-(FLAGS.early_stopping+1):-1]):
         print("Early stopping...")
         break
+
+
+
 
 print("Optimization Finished!")
 
@@ -241,3 +243,13 @@ print("Optimization Finished!")
 test_cost, test_acc, test_duration = evaluate(features, support, y_test, test_mask, molecule_partitions, num_molecules, placeholders)
 print("Test set results:", "cost=", "{:.5f}".format(test_cost),
       "accuracy=", "{:.5f}".format(test_acc), "time=", "{:.5f}".format(test_duration))
+
+
+Costs_file = open("costs.txt","a+")
+Costs_file.write("mu\n")
+Costs_file.write("Epochs: " + str(epoch + 1) + "\ntrain_loss= " + str(outs[1]) + "  train_acc= " + str(outs[2]) +
+      "\nval_loss= " +str(cost) + "  val_acc= " + str(acc))
+Costs_file.write("\n")
+Costs_file.write("Test cost= " + str(test_cost) + "  Test_acc= " +str(test_acc))
+Costs_file.write("\n\n")
+Costs_file.close()
