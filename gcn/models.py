@@ -240,14 +240,16 @@ class JCNN(Model):
                                             placeholders=self.placeholders,
                                             act=tf.nn.relu,
                                             dropout = True,
-                                            bias=True,
+                                            bias=False,
                                             logging=self.logging))
+
 
         self.layers.append(GraphConvolution(input_dim=FLAGS.hidden3,
                                             output_dim=FLAGS.hidden4,
                                             placeholders=self.placeholders,
                                             act=tf.nn.relu,
-                                            dropout=True,
+                                            dropout = False,
+                                            bias=True,
                                             logging=self.logging))
 
         self.layers.append(GraphConvolution(input_dim=FLAGS.hidden4,

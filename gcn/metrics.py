@@ -11,21 +11,23 @@ def masked_softmax_cross_entropy(preds, labels, mask):
 
 def masked_accuracy(preds, labels, mask):
     """Accuracy with masking."""
-    correct_prediction = tf.logical_and(tf.less(preds,labels*1.5),tf.greater(preds,labels*0.5))
-    accuracy_all = tf.cast(correct_prediction, tf.float32)
+    mask=tf.transpose(mask)
     mask = tf.cast(mask, dtype=tf.float32)
-    print(labels.shape)
-    print("MROW")
     mask = tf.expand_dims(mask,-1)
-    mask = tf.tile(mask,tf.stack([tf.constant(1),tf.shape(labels)[1]],axis=0))
+    mask = tf.tile(mask,[1,labels.shape[1]])
     mask /= tf.reduce_mean(mask)
+
+    #mnabserr = tf.metrics.mean_absolute_error(labels,preds)
+    #accuracy_all = tf.multiply(mnabserr,mask)
     #accuracy_all *= mask
-    return tf.reduce_mean(accuracy_all)
+    
+    loss = tf.losses.mean_squared_error(labels,preds,reduction=tf.losses.Reduction.NONE)
+    loss = tf.multiply(loss,mask)
+    return tf.reduce_mean(loss)
 
 def square_error(preds, labels, mask):
     """L2 loss refactored to incorporate masks"""
     #n = len(preds)
-    print("MEow Mwoe")
     mask = tf.cast(mask,dtype=tf.float32)
     mask = tf.expand_dims(mask,-1)
     mask = tf.tile(mask,[1,labels.shape[1]])

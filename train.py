@@ -47,6 +47,7 @@ def squared_error(preds, labels, mask):
     mask = tf.expand_dims(mask,-1)
     mask = tf.tile(mask,[1,2])
     mask /= tf.reduce_mean(mask)
+
     loss = tf.losses.mean_squared_error(labels,preds,reduction=tf.losses.Reduction.NONE)
     loss = tf.multiply(loss,mask)
     return tf.reduce_mean(loss)
@@ -59,12 +60,14 @@ def masked_accuracy(preds, labels, mask):
     mask = tf.expand_dims(mask,-1)
     mask = tf.tile(mask,[1,labels.shape[1]])
     mask /= tf.reduce_mean(mask)
-    mnabserr = tf.metrics.mean_absolute_error(labels,preds)
-    accuracy_all = tf.multiply(mnabserr,mask)
-    #correct_prediction = tf.logical_and(tf.less(preds,labels*1.5),tf.greater(preds,labels*0.5))
-    #accuracy_all = tf.cast(correct_prediction, tf.float32)
+
+    #mnabserr = tf.metrics.mean_absolute_error(labels,preds)
+    #accuracy_all = tf.multiply(mnabserr,mask)
     #accuracy_all *= mask
-    return tf.reduce_mean(accuracy_all)
+    
+    loss = tf.losses.mean_squared_error(labels,preds,reduction=tf.losses.Reduction.NONE)
+    loss = tf.multiply(loss,mask)
+    return tf.reduce_mean(loss)
 
 def wtf2():
     #run the graph
@@ -76,8 +79,6 @@ def wtf2():
         outs = sess.run([masked_accuracy(pred,labs,mask)],feed_dict=None)
         print(outs)
     exit()
-
-wtf2()
 
 
 
@@ -91,17 +92,16 @@ tf.set_random_seed(seed)
 # Load data
 adj, features, y_train, y_val, y_test, train_mask, val_mask, test_mask,molecule_partitions, num_molecules = load_data3()
 
-print("mewoers")
-print("finished loading data")
-print(y_train[0:10])
+print("Finished loading data")
+
 
 # Settings
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 flags.DEFINE_string('dataset', 'cora', 'Dataset string.')  # 'cora', 'citeseer', 'pubmed'
 flags.DEFINE_string('model', 'jcnn', 'Model string.')  # 'gcn', 'gcn_cheby', 'dense'
-flags.DEFINE_float('learning_rate', 0.8, 'Initial learning rate.')
-flags.DEFINE_integer('epochs', 1000, 'Number of epochs to train.')
+flags.DEFINE_float('learning_rate', 5.0, 'Initial learning rate.')
+flags.DEFINE_integer('epochs', 5000, 'Number of epochs to train.')
 flags.DEFINE_integer('hidden1', 36, 'Number of units in hidden layer 1.')
 flags.DEFINE_integer('hidden2', 30, 'Number of units in hidden layer 2.')
 flags.DEFINE_integer('hidden3', 34, 'Number of units in hidden layer 3.')
@@ -115,9 +115,9 @@ flags.DEFINE_integer('hidden10', 24, 'Number of units in hidden layer 10.')
 flags.DEFINE_integer('hidden11', 24, 'Number of units in hidden layer 11.')
 flags.DEFINE_integer('hidden12', 24, 'Number of units in hidden layer 12.')
 flags.DEFINE_integer('node_output_size', 10, 'Number of hidden features each node has prior to readout')
-flags.DEFINE_float('dropout', 0.5, 'Dropout rate (1 - keep probability).')
+flags.DEFINE_float('dropout', 0.2, 'Dropout rate (1 - keep probability).')
 flags.DEFINE_float('weight_decay', 5e-4, 'Weight for L2 loss on embedding matrix.')
-flags.DEFINE_integer('early_stopping', 100, 'Tolerance for early stopping (# of epochs).')
+flags.DEFINE_integer('early_stopping', 300, 'Tolerance for early stopping (# of epochs).')
 flags.DEFINE_integer('max_degree', 3, 'Maximum Chebyshev polynomial degree.')
 
 # Some preprocessing
@@ -202,9 +202,22 @@ for epoch in range(FLAGS.epochs):
     cost, acc, duration = evaluate(features, support, y_val, val_mask, molecule_partitions, num_molecules, placeholders)
     cost_val.append(cost)
 
-    if (epoch == 150):
+    if (epoch == 100):
+        FLAGS.learning_rate = 1.0
+        print("Changing learning rate to: ", FLAGS.learning_rate)
+    if (epoch == 300):
+        FLAGS.learning_rate = 0.5
+        print("Changing learning rate to: ", FLAGS.learning_rate)
+    if (epoch == 400):
+        FLAGS.learning_rate = 0.1
+        print("Changing learning rate to: ", FLAGS.learning_rate)
+    if (epoch == 600):
+        FLAGS.learning_rate = 0.05
+        print("Changing learning rate to: ", FLAGS.learning_rate)
+    if (epoch == 1000):
         FLAGS.learning_rate = 0.01
-        print(FLAGS.learning_rate)
+        print("Changing learning rate to: ", FLAGS.learning_rate)
+
 
     #print(y_train[1])
 

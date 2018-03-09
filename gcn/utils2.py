@@ -7,6 +7,7 @@ import sys, os
 
 import Cython;
 import molmod as mm;
+from molmod.periodic import periodic
 import tensorflow as tf
 
 def parse_index_file(filename):
@@ -28,21 +29,30 @@ def get_atomic_features(n):
     return
 
 
-def add_sample(maxi,url,nodes,features,target,A,sizes,molecule_id,elements_info):
+def add_sample(url,features,target,A,sizes,molecule_id,elements_info):
     properties = [];
+
     with open(url,'r') as file:
         for row in file:
             properties += row.split();
+
     #extract information from xyz file
-    mol = mm.Molecule.from_file(url);
+    try:
+        mol = mm.Molecule.from_file(url);
+    except:
+        #Write problem file name
+        problematic_files = open("problematics","w")
+        problematic_files.write(molecule_id+" :  "+url+" \n")
+        problematic_files.close()
+        return features, target, A, sizes, molecule_id
     #mol.write_to_file("new.xyz");
     mol.graph = mm.MolecularGraph.from_geometry(mol);
     vertices = mol.graph.numbers;
     edges = mol.graph.edges;
     d = len(vertices) #the size of each molecule
-    #np.append(nodes,vertices)
-    #nodes = np.append(nodes,vertices)
-    
+
+    partial_charges=properties[22:(23+5*(d-1)):5]
+
     atomic_number_mean = elements_info[1]
     atomic_number_stdev = elements_info[2]
 
@@ -60,7 +70,7 @@ def add_sample(maxi,url,nodes,features,target,A,sizes,molecule_id,elements_info)
     # atomic_no, H, C, N, O, F, acceptor, donor, aromatic, hybridization
     # int, one-hot (5 cols), bool, bool, bool, one-hot
 
-    f = 7
+    f = 9
     tempfeatures = [[0]*f for _ in range(d)]; # d=#nodes,  f=#features available
 
     #populate the adjacency matrix with intermolecular distances in terms of 1/r^2
@@ -71,15 +81,6 @@ def add_sample(maxi,url,nodes,features,target,A,sizes,molecule_id,elements_info)
         v_j = tuple_list[1];
         tempA[v_i][v_j] = 1.0/pow(mol.distance_matrix[v_i][v_j],2)
         tempA[v_j][v_i] = 1.0/pow(mol.distance_matrix[v_i][v_j],2)
-        if(mol.distance_matrix[v_i][v_j] < maxi[0]):
-            maxi[0] = mol.distance_matrix[v_i][v_j]
-        if(mol.distance_matrix[v_j][v_i] < maxi[0]):
-            maxi[0] = mol.distance_matrix[v_j][v_i]
-        if(mol.distance_matrix[v_i][v_j] > maxi[1]):
-            maxi[1] = mol.distance_matrix[v_i][v_j]
-        if(mol.distance_matrix[v_j][v_i] > maxi[1]):
-            maxi[1] = mol.distance_matrix[v_j][v_i]
-        #print(mol.distance_matrix[v_i][v_j],mol.distance_matrix[v_j][v_i])
 
     for atom in range(len(vertices)):
         tempfeatures[atom][0] = (float(vertices[atom])-atomic_number_mean)/atomic_number_stdev
@@ -89,9 +90,9 @@ def add_sample(maxi,url,nodes,features,target,A,sizes,molecule_id,elements_info)
         tempfeatures[atom][4] = int(vertices[atom]==8) #O
         tempfeatures[atom][5] = int(vertices[atom]==9) #F
         tempfeatures[atom][6] = 1.0/(list(vertices).count(1)+1.0) #number of H
+        tempfeatures[atom][7] = float(periodic[vertices[atom]].vdw_radius)
+        tempfeatures[atom][8] = float(partial_charges[atom]) #Mulliken partial charge
 
-
-        #print(tempfeatures[v_i][1])
     A.append(tempA)
     if (molecule_id == 0):
         sizes = sizes + [d-1]
@@ -103,19 +104,18 @@ def add_sample(maxi,url,nodes,features,target,A,sizes,molecule_id,elements_info)
     #target.append([dipole_moment,polarizability,homo,lumo,gap,
     #                enthalpy,free_nrg,heat_capacity])
     features+=tempfeatures
-    return maxi,nodes, features, target, A, sizes, molecule_id
+    return features, target, A, sizes, molecule_id
 
 def load_data3():
     """Load data."""
-    path="../tem/"
-    nodes = np.array([])
+    path="../tem_1000/"
     features = [] #features of each node
     A=[] #list of graph adjacency matrices; each entry is the adjacency matrix for one molecule
     sizes = [] #list of sizes of molecules; each entry is the size of a molecule
     molecule_id = 0
     target = [] #list of "y's" - each entry is an "answer" for a molecule
 
-    maxi=[10.,0.]
+
     # Info for standardizing data
     elements = np.array([1,6,7,8,9])
     elements_mean = np.mean(elements)
@@ -123,13 +123,14 @@ def load_data3():
     elements_all = [elements, elements_mean, elements_stdev]
 
     for file in os.listdir(path):
-        maxi,nodes, features, target, A, sizes, molecule_id = add_sample(maxi,path+file,nodes,features,target,A,sizes,molecule_id,elements_all)
+        features, target, A, sizes, molecule_id = add_sample(path+file,features,target,A,sizes,molecule_id,elements_all)
 
-    print(maxi)
+    print("Total molecules",molecule_id)
+
     molecule_partitions=np.cumsum(sizes) #to get partition positions
     n = molecule_partitions[-1]+1 #total sum of all nodes
     adj = np.zeros((n,n))
-
+    print("N:",molecule_id)
     i=0 #index
     j=0
     v=0
@@ -140,12 +141,12 @@ def load_data3():
         adj[i:(i+size),i:(i+size)] = matrix
         i += size
         j += 1
-        if (j == 600):
-            v = i
-            #where validation set begins
-        if (j == 900):
-            #where the test set begins
-            t = i
+        # if (j == 85000):
+        #     v = i
+        #     #where validation set begins
+        # if (j == 110000):
+        #     #where the test set begins
+        #     t = i
 
     target = np.array(target)
     labels = (target-np.mean(target))/np.std(target)
@@ -154,9 +155,12 @@ def load_data3():
     #idx_test = range(t,n)
     #idx_train = range(0,v-1)
     #idx_val = range(v,t)
-    idx_train = range(600)
-    idx_val = range(600,900)
-    idx_test = range(900,1000)
+
+    print(labels.shape)
+    idx_train = range(int(molecule_id*2/3))
+    print(int(molecule_id*2/3),int(molecule_id*2/3),int(molecule_id*5/6),int(molecule_id*5/6))
+    idx_val = range(int(molecule_id*2/3),int(molecule_id*5/6))
+    idx_test = range(int(molecule_id*5/6),molecule_id)
 
     train_mask = sample_mask(idx_train, labels.shape[0])
     val_mask = sample_mask(idx_val, labels.shape[0])
