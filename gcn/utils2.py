@@ -30,85 +30,89 @@ def get_atomic_features(n):
 
 
 def add_sample(url,features,target,A,sizes,molecule_id,elements_info):
-    properties = [];
-
-    with open(url,'r') as file:
-        for row in file:
-            properties += row.split();
-
     #extract information from xyz file
     try:
         mol = mm.Molecule.from_file(url);
+        properties = [];
+
+        with open(url,'r') as file:
+            for row in file:
+                properties += row.split();
+
+       #mol.write_to_file("new.xyz");
+        mol.graph = mm.MolecularGraph.from_geometry(mol);
+        vertices = mol.graph.numbers;
+        edges = mol.graph.edges;
+        d = len(vertices) #the size of each molecule
+
+        partial_charges=properties[22:(23+5*(d-1)):5]
+
+        atomic_number_mean = elements_info[1]
+        atomic_number_stdev = elements_info[2]
+
+        #dipole_moment = float(properties[6])
+        #polarizability = float(properties[7])
+        #homo = float(properties[8])
+        #lumo = float(properties[9])
+        #gap = float(properties[10])
+        #enthalpy = float(properties[15])
+        #free_nrg = float(properties[16])
+        heat_capacity = float(properties[17])
+  
+        tempA = np.zeros((d,d)); #Adjacency matrix
+        #Structure of the features matrix: (in a row)
+        # atomic_no, H, C, N, O, F, acceptor, donor, aromatic, hybridization
+        # int, one-hot (5 cols), bool, bool, bool, one-hot
+
+        f = 9
+        tempfeatures = [[0]*f for _ in range(d)]; # d=#nodes,  f=#features available
+
+        #populate the adjacency matrix with intermolecular distances in terms of 1/r^2
+        for tupl in edges:
+            tuple_list = list(tupl);
+            #print(tuple_list)
+            v_i = tuple_list[0];
+            v_j = tuple_list[1];
+            tempA[v_i][v_j] = 1.0/pow(mol.distance_matrix[v_i][v_j],2)
+            tempA[v_j][v_i] = 1.0/pow(mol.distance_matrix[v_i][v_j],2)
+
+        for atom in range(len(vertices)):
+            tempfeatures[atom][0] = (float(vertices[atom])-atomic_number_mean)/atomic_number_stdev
+            tempfeatures[atom][1] = int(vertices[atom]==1) #H
+            tempfeatures[atom][2] = int(vertices[atom]==6) #C
+            tempfeatures[atom][3] = int(vertices[atom]==7) #N
+            tempfeatures[atom][4] = int(vertices[atom]==8) #O
+            tempfeatures[atom][5] = int(vertices[atom]==9) #F
+            tempfeatures[atom][6] = 1.0/(list(vertices).count(1)+1.0) #number of H
+            tempfeatures[atom][7] = float(periodic[vertices[atom]].vdw_radius)
+            tempfeatures[atom][8] = float(partial_charges[atom]) #Mulliken partial charge
+
+        A.append(tempA)
+        if (molecule_id == 0):
+            sizes = sizes + [d-1]
+        else:
+            sizes = sizes + [d]
+        molecule_id=molecule_id+1
+        if (molecule_id % 5000 == 0):
+            print("On the "+str(molecule_id)+"th molecule")
+
+        target.append([heat_capacity])
+        #target.append([dipole_moment,polarizability,homo,lumo,gap,
+        #                enthalpy,free_nrg,heat_capacity])
+        features+=tempfeatures
+        return features, target, A, sizes, molecule_id
     except:
         #Write problem file name
-        problematic_files = open("problematics","w")
-        problematic_files.write(molecule_id+" :  "+url+" \n")
+        problematic_files = open("problematics.txt","w")
+        problematic_files.write(str(molecule_id)+" :  "+str(url)+" \n")
         problematic_files.close()
         return features, target, A, sizes, molecule_id
-    #mol.write_to_file("new.xyz");
-    mol.graph = mm.MolecularGraph.from_geometry(mol);
-    vertices = mol.graph.numbers;
-    edges = mol.graph.edges;
-    d = len(vertices) #the size of each molecule
 
-    partial_charges=properties[22:(23+5*(d-1)):5]
 
-    atomic_number_mean = elements_info[1]
-    atomic_number_stdev = elements_info[2]
-
-    #dipole_moment = float(properties[6])
-    #polarizability = float(properties[7])
-    #homo = float(properties[8])
-    #lumo = float(properties[9])
-    #gap = float(properties[10])
-    #enthalpy = float(properties[15])
-    #free_nrg = float(properties[16])
-    heat_capacity = float(properties[17])
-  
-    tempA = np.zeros((d,d)); #Adjacency matrix
-    #Structure of the features matrix: (in a row)
-    # atomic_no, H, C, N, O, F, acceptor, donor, aromatic, hybridization
-    # int, one-hot (5 cols), bool, bool, bool, one-hot
-
-    f = 9
-    tempfeatures = [[0]*f for _ in range(d)]; # d=#nodes,  f=#features available
-
-    #populate the adjacency matrix with intermolecular distances in terms of 1/r^2
-    for tupl in edges:
-        tuple_list = list(tupl);
-        #print(tuple_list)
-        v_i = tuple_list[0];
-        v_j = tuple_list[1];
-        tempA[v_i][v_j] = 1.0/pow(mol.distance_matrix[v_i][v_j],2)
-        tempA[v_j][v_i] = 1.0/pow(mol.distance_matrix[v_i][v_j],2)
-
-    for atom in range(len(vertices)):
-        tempfeatures[atom][0] = (float(vertices[atom])-atomic_number_mean)/atomic_number_stdev
-        tempfeatures[atom][1] = int(vertices[atom]==1) #H
-        tempfeatures[atom][2] = int(vertices[atom]==6) #C
-        tempfeatures[atom][3] = int(vertices[atom]==7) #N
-        tempfeatures[atom][4] = int(vertices[atom]==8) #O
-        tempfeatures[atom][5] = int(vertices[atom]==9) #F
-        tempfeatures[atom][6] = 1.0/(list(vertices).count(1)+1.0) #number of H
-        tempfeatures[atom][7] = float(periodic[vertices[atom]].vdw_radius)
-        tempfeatures[atom][8] = float(partial_charges[atom]) #Mulliken partial charge
-
-    A.append(tempA)
-    if (molecule_id == 0):
-        sizes = sizes + [d-1]
-    else:
-        sizes = sizes + [d]
-    molecule_id=molecule_id+1
-
-    target.append([heat_capacity])
-    #target.append([dipole_moment,polarizability,homo,lumo,gap,
-    #                enthalpy,free_nrg,heat_capacity])
-    features+=tempfeatures
-    return features, target, A, sizes, molecule_id
 
 def load_data3():
     """Load data."""
-    path="../tem_1000/"
+    path="../tem/"
     features = [] #features of each node
     A=[] #list of graph adjacency matrices; each entry is the adjacency matrix for one molecule
     sizes = [] #list of sizes of molecules; each entry is the size of a molecule
