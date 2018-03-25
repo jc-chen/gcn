@@ -33,7 +33,7 @@ def write_file(*args):
     for arg in args:
         file_name = './loaded_data/' + str(arg[0]) + '.txt'
         with open(file_name,'wb') as file:
-            pkl.dump(arg[1],file)
+            pkl.dump(arg[1],file,protocol=2)
     return 
 
 def load_saved(*args):
