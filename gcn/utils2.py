@@ -32,7 +32,7 @@ def get_atomic_features(n):
 def write_file(*args):
     for arg in args:
         file_name = './loaded_data/' + str(arg[0]) + '.txt'
-        with open(file_name,'w') as file:
+        with open(file_name,'wb') as file:
             pkl.dump(arg[1],file)
     return 
 
@@ -42,7 +42,7 @@ def load_saved(*args):
     for arg in args:
         print("Writing"+str(arg)+".txt now")
         file_name = './loaded_data/' + str(arg) + '.txt'
-        with open(file_name,'r') as file:
+        with open(file_name,'rb') as file:
             a += [pkl.load(file)]
     return a
 
@@ -84,8 +84,8 @@ def add_sample(url,features,target,A,sizes,num_molecules,elements_info):
   
         tempA = np.zeros((d,d)); #Adjacency matrix
         #Structure of the features matrix: (in a row)
-        # atomic_no, H, C, N, O, F, acceptor, donor, aromatic, hybridization
-        # int, one-hot (5 cols), bool, bool, bool, one-hot
+        # atomic_no, H, C, N, O, F, #H, vdw radius, partial charge, acceptor, donor
+        # int, one-hot (5 cols), int, float, float, one-hot (2 cols)
 
         f = 11
         tempfeatures = [[0]*f for _ in range(d)]; # d=#nodes,  f=#features available
@@ -93,7 +93,6 @@ def add_sample(url,features,target,A,sizes,num_molecules,elements_info):
         #populate the adjacency matrix with intermolecular distances in terms of 1/r^2
         for tupl in edges:
             tuple_list = list(tupl);
-            #print(tuple_list)
             v_i = tuple_list[0];
             v_j = tuple_list[1];
             tempA[v_i][v_j] = 1.0/pow(mol.distance_matrix[v_i][v_j],2)
@@ -109,8 +108,8 @@ def add_sample(url,features,target,A,sizes,num_molecules,elements_info):
             tempfeatures[atom][6] = 1.0/(list(vertices).count(1)+1.0) #number of H
             tempfeatures[atom][7] = float(periodic[vertices[atom]].vdw_radius)
             tempfeatures[atom][8] = float(partial_charges[atom]) #Mulliken partial charge
-            tempfeatures[atom][9] = int(partial_charges[atom] >0.0)
-            tempfeatures[atom][10] = int(partial_charges[atom] <0.0)
+            tempfeatures[atom][9] = int(float(partial_charges[atom]) >0.0)
+            tempfeatures[atom][10] = int(float(partial_charges[atom]) <0.0)
         A.append(sp.coo_matrix(tempA))
         if (num_molecules == 0):
             sizes = sizes + [d-1]
@@ -127,9 +126,10 @@ def add_sample(url,features,target,A,sizes,num_molecules,elements_info):
         return features, target, A, sizes, num_molecules
     except Exception as e:
         #Write problem file name
-        problem_files = open("analysis/problem_files.txt","a+")
-        problem_files.write(str(num_molecules)+" :  "+str(url)+ str(e) + " \n")
-        problem_files.close()
+        print(str(e))
+
+        with open("analysis/problem_files.txt","w") as file:
+            file.write(str(num_molecules)+" :  "+str(url)+ "   " + str(e) + "\n")
         return features, target, A, sizes, num_molecules
 
 
