@@ -14,7 +14,7 @@ def masked_accuracy(preds, labels, mask, target_mean, target_stdev):
     mask=tf.transpose(mask)
     mask = tf.cast(mask, dtype=tf.float32)
     mask = tf.expand_dims(mask,-1)
-    mask = tf.tile(mask,[1,labels.shape[1]])
+    mask = tf.tile(mask,[1,labels.shape[1].value])
     mask /= tf.reduce_mean(mask)
 
     #mnabserr = tf.metrics.mean_absolute_error(labels,preds)
@@ -29,7 +29,7 @@ def masked_accuracy(preds, labels, mask, target_mean, target_stdev):
 def mean_absolute_error(preds,labels,mask):
     mask = tf.cast(mask,dtype=tf.float32)
     mask = tf.expand_dims(mask,-1)
-    mask = tf.tile(mask,[1,labels.shape[1]])
+    mask = tf.tile(mask,[1,labels.shape[1].value])
     mask /= tf.reduce_mean(mask)
     loss = tf.abs(tf.subtract(labels,preds))
     loss = tf.multiply(loss,mask)
@@ -40,7 +40,7 @@ def square_error(preds, labels, mask):
     #n = len(preds)
     mask = tf.cast(mask,dtype=tf.float32)
     mask = tf.expand_dims(mask,-1)
-    mask = tf.tile(mask,[1,labels.shape[1]])
+    mask = tf.tile(mask,[1,labels.shape[1].value])
     mask /= tf.reduce_mean(mask)
     loss = tf.losses.mean_squared_error(labels,preds,reduction=tf.losses.Reduction.NONE)
     loss = tf.multiply(loss,mask)
