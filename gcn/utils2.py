@@ -9,6 +9,7 @@ import Cython;
 import molmod as mm;
 from molmod.periodic import periodic
 import tensorflow as tf
+from random import shuffle
 
 def parse_index_file(filename):
     """Parse index file."""
@@ -28,8 +29,25 @@ def get_atomic_features(n):
     '''n is the atomic number'''
     return
 
+def write_file(*args):
+    for arg in args:
+        file_name = './loaded_data/' + str(arg[0]) + '.txt'
+        with open(file_name,'w') as file:
+            pkl.dump(arg[1],file)
+    return 
 
-def add_sample(url,features,target,A,sizes,molecule_id,elements_info):
+def load_saved(*args):
+    a=[]
+
+    for arg in args:
+        print("Writing"+str(arg)+".txt now")
+        file_name = './loaded_data/' + str(arg) + '.txt'
+        with open(file_name,'r') as file:
+            a += [pkl.load(file)]
+    return a
+
+
+def add_sample(url,features,target,A,sizes,num_molecules,elements_info):
     #extract information from xyz file
     try:
         mol = mm.Molecule.from_file(url);
@@ -39,7 +57,7 @@ def add_sample(url,features,target,A,sizes,molecule_id,elements_info):
             for row in file:
                 properties += row.split();
 
-       #mol.write_to_file("new.xyz");
+        #mol.write_to_file("new.xyz");
         mol.graph = mm.MolecularGraph.from_geometry(mol);
         vertices = mol.graph.numbers;
         edges = mol.graph.edges;
@@ -50,13 +68,17 @@ def add_sample(url,features,target,A,sizes,molecule_id,elements_info):
         atomic_number_mean = elements_info[1]
         atomic_number_stdev = elements_info[2]
 
-        #dipole_moment = float(properties[6])
-        #polarizability = float(properties[7])
-        #homo = float(properties[8])
-        #lumo = float(properties[9])
-        #gap = float(properties[10])
-        #enthalpy = float(properties[15])
-        #free_nrg = float(properties[16])
+        dipole_moment = float(properties[6])
+        polarizability = float(properties[7])
+        homo = float(properties[8])
+        lumo = float(properties[9])
+        gap = float(properties[10])
+        r2 = float(properties[11])
+        zpve = float(properties[12])
+        U0 = float(properties[13])
+        internal_energy = float(properties[14])
+        enthalpy = float(properties[15])
+        free_nrg = float(properties[16])
         heat_capacity = float(properties[17])
   
   
@@ -65,7 +87,7 @@ def add_sample(url,features,target,A,sizes,molecule_id,elements_info):
         # atomic_no, H, C, N, O, F, acceptor, donor, aromatic, hybridization
         # int, one-hot (5 cols), bool, bool, bool, one-hot
 
-        f = 9
+        f = 11
         tempfeatures = [[0]*f for _ in range(d)]; # d=#nodes,  f=#features available
 
         #populate the adjacency matrix with intermolecular distances in terms of 1/r^2
@@ -87,37 +109,42 @@ def add_sample(url,features,target,A,sizes,molecule_id,elements_info):
             tempfeatures[atom][6] = 1.0/(list(vertices).count(1)+1.0) #number of H
             tempfeatures[atom][7] = float(periodic[vertices[atom]].vdw_radius)
             tempfeatures[atom][8] = float(partial_charges[atom]) #Mulliken partial charge
-
-        A.append(tempA)
-        if (molecule_id == 0):
+            tempfeatures[atom][9] = int(partial_charges[atom] >0.0)
+            tempfeatures[atom][10] = int(partial_charges[atom] <0.0)
+        A.append(sp.coo_matrix(tempA))
+        if (num_molecules == 0):
             sizes = sizes + [d-1]
         else:
             sizes = sizes + [d]
-        molecule_id=molecule_id+1
-        if (molecule_id % 5000 == 0):
-            print("On the "+str(molecule_id)+"th molecule")
+        num_molecules=num_molecules+1
+        if (num_molecules % 5000 == 0):
+            print("On the "+str(num_molecules)+"th molecule")
 
-        target.append([heat_capacity])
-        #target.append([dipole_moment,polarizability,homo,lumo,gap,
-        #                enthalpy,free_nrg,heat_capacity])
+        target.append([dipole_moment,polarizability,homo,lumo,gap,
+            r2,zpve,U0,internal_energy,enthalpy,free_nrg,heat_capacity])
+
         features+=tempfeatures
-        return features, target, A, sizes, molecule_id
-    except:
+        return features, target, A, sizes, num_molecules
+    except Exception as e:
         #Write problem file name
-        problematic_files = open("problematics.txt","a+")
-        problematic_files.write(str(molecule_id)+" :  "+str(url)+" \n")
-        problematic_files.close()
-        return features, target, A, sizes, molecule_id
+        problem_files = open("analysis/problem_files.txt","a+")
+        problem_files.write(str(num_molecules)+" :  "+str(url)+ str(e) + " \n")
+        problem_files.close()
+        return features, target, A, sizes, num_molecules
 
 
 
-def load_data3():
+def load_data3(path,flag=0):
     """Load data."""
-    path="../tem_1000/"
+
+    if (flag==1):
+        return load_saved('target_mean','target_stdev','adj','features','y_train',
+            'y_val', 'y_test','train_mask','val_mask','test_mask','molecule_partitions','num_molecules')
+
     features = [] #features of each node
     A=[] #list of graph adjacency matrices; each entry is the adjacency matrix for one molecule
     sizes = [] #list of sizes of molecules; each entry is the size of a molecule
-    molecule_id = 0
+    num_molecules = 0
     target = [] #list of "y's" - each entry is an "answer" for a molecule
 
 
@@ -128,44 +155,28 @@ def load_data3():
     elements_all = [elements, elements_mean, elements_stdev]
 
     for file in os.listdir(path):
-        features, target, A, sizes, molecule_id = add_sample(path+file,features,target,A,sizes,molecule_id,elements_all)
+        features, target, A, sizes, num_molecules = add_sample(path+file,features,target,A,sizes,num_molecules,elements_all)
 
-    print("Total molecules",molecule_id)
+    print("Total molecules",num_molecules)
 
     molecule_partitions=np.cumsum(sizes) #to get partition positions
-    n = molecule_partitions[-1]+1 #total sum of all nodes
-    adj = np.zeros((n,n))
-    print("N:",molecule_id)
-    i=0 #index
-    j=0
-    v=0
-    t=0
-    for matrix in A:
-        #put the list of matrices into one big matrix
-        size = len(matrix)
-        adj[i:(i+size),i:(i+size)] = matrix
-        i += size
-        j += 1
-        # if (j == 85000):
-        #     v = i
-        #     #where validation set begins
-        # if (j == 110000):
-        #     #where the test set begins
-        #     t = i
+    #n = molecule_partitions[-1]+1 #total sum of all nodes
+
+    adj = sp.csr_matrix(sp.block_diag(A))
 
     target = np.array(target)
-    labels = (target-np.mean(target))/np.std(target)
-    sparse_adj = sp.csr_matrix(adj);
+    target_mean = np.mean(target,axis=0)
+    target_stdev = np.std(target,axis=0)
+    labels = (target-target_mean)/target_stdev
 
-    #idx_test = range(t,n)
-    #idx_train = range(0,v-1)
-    #idx_val = range(v,t)
+    print("defined labels")
 
-    print(labels.shape)
-    idx_train = range(int(molecule_id*2/3))
-    print(int(molecule_id*2/3),int(molecule_id*2/3),int(molecule_id*5/6),int(molecule_id*5/6))
-    idx_val = range(int(molecule_id*2/3),int(molecule_id*5/6))
-    idx_test = range(int(molecule_id*5/6),molecule_id)
+    #randomized_order = range(num_molecules)
+    #shuffle(range(num_molecules))
+
+    idx_train = range(int(num_molecules*2/3))
+    idx_val = range(int(num_molecules*2/3),int(num_molecules*5/6))
+    idx_test = range(int(num_molecules*5/6),num_molecules)
 
     train_mask = sample_mask(idx_train, labels.shape[0])
     val_mask = sample_mask(idx_val, labels.shape[0])
@@ -180,7 +191,16 @@ def load_data3():
 
     feats = sp.coo_matrix(np.array(features)).tolil()
 
-    return sparse_adj, feats, y_train, y_val, y_test, train_mask, val_mask, test_mask, molecule_partitions, molecule_id
+    print("About to write to file")
+    write_file(('target_mean', target_mean), ('target_stdev', target_stdev), ('adj', adj),
+        ('features', feats), ('y_train', y_train), ('y_val', y_val), ('y_test', y_test), 
+        ('train_mask', train_mask), ('val_mask', val_mask), ('test_mask', test_mask),
+        ('molecule_partitions',molecule_partitions),('num_molecules',num_molecules))
+
+    print("Finished writing to file")
+
+    return [target_mean, target_stdev, adj, feats, y_train, y_val, y_test, train_mask, 
+        val_mask, test_mask, molecule_partitions, num_molecules]
 
 
 def sparse_to_tuple(sparse_mx):
@@ -228,7 +248,7 @@ def preprocess_adj(adj):
     return sparse_to_tuple(adj_normalized)
 
 
-def construct_feed_dict(features, support, labels, labels_mask, molecule_partitions, num_molecules ,placeholders):
+def construct_feed_dict(target_mean, target_stdev, features, support, labels, labels_mask, molecule_partitions, num_molecules ,placeholders):
     """Construct feed dictionary."""
     feed_dict = dict()
     feed_dict.update({placeholders['labels']: labels})
@@ -238,6 +258,8 @@ def construct_feed_dict(features, support, labels, labels_mask, molecule_partiti
     feed_dict.update({placeholders['num_features_nonzero']: features[1].shape})
     feed_dict.update({placeholders['molecule_partitions']:molecule_partitions})
     feed_dict.update({placeholders['num_molecules']:num_molecules})
+    feed_dict.update({placeholders['target_mean']:target_mean})
+    feed_dict.update({placeholders['target_stdev']:target_stdev})
 
     return feed_dict
 

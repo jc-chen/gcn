@@ -218,14 +218,8 @@ class ReadOut(Layer):
         self.num_features_nonzero = placeholders['num_features_nonzero']
 
 
-        # print("habby wormy")
-        # print(self.molecule_partitions.shape[0])
         with tf.variable_scope(self.name + '_vars'):
-            # for i in range(input_dim*output_dim):
-            #     self.vars['weights_i'] += [glorot([input_dim, output_dim],
-            #                                     name='weights_i_' + str(i))]
-            #     self.vars['weights_j'] += [glorot([input_dim, output_dim],
-            #                                     name='weights_j_' + str(i))]
+
             self.vars['weights_i'] = glorot([input_dim, output_dim],
                                             name='weights_i')        
             self.vars['weights_j'] = glorot([input_dim, output_dim],
@@ -236,6 +230,7 @@ class ReadOut(Layer):
                 self.vars['bias_j'] = zeros([output_dim],
                                             name='bias_j')
                 
+            # for i in range(input_dim*output_dim):
                 # self.vars['weights_i_' + str(i)] = glorot([input_dim, output_dim],
                 #                                         name='weights_i_' + str(i))
                 
@@ -264,7 +259,6 @@ class ReadOut(Layer):
         # b = tf.slice(x,[0,self.molecule_partitions[0],0],[1,self.molecule_partitions[1],x.shape[1]])
 
         '''this is the part (transform/convolve) that needs to be changed to output desired value'''
-
         #n_molecs = tf.scan(lambda a, x:a,)
         #tf.dynamic_partition(x, self.molecule_partitions, self.num_molecules, name=None)
 

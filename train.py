@@ -8,91 +8,17 @@ from gcn.utils2 import *
 from gcn.models import GCN, MLP, JCNN
 
 
-def test(n, input_tensor):
-    #builds an m by m matrix like (for example for 3 molecules):
-    #  [1   0  0]
-    #  [-1  1  0]
-    #  [0  -1  1]
-    # and multiplies it by the input vector to get a difference vector
-        
-    A = tf.eye(n)
-    B = tf.pad(tf.negative(tf.eye(tf.subtract(n,tf.constant(1)))), tf.constant([[1, 0,], [0, 1]]), "CONSTANT")
-    d_tensor = tf.add(A,B)
-    out = tf.matmul(d_tensor,input_tensor, name="output_after_tensorDiff")
-    return out
-
-def turmoil_func():
-    n=10
-    m=4
-    p=3
-    partits = tf.constant([2,3,7,9])
-    outputter = tf.constant([[-1.0,2,-3],[4,-5,6],[-7,8,9],[-10,-11,-12],[0,0,0],[0,1,2],[3,4,5],[6,7,8],[0,1,2],[0.5,0,1]])
-    outputter = tf.cumsum(outputter)
-    outputter = tf.gather(outputter,partits)
-    outputter = test(m,outputter)
-    return outputter
-
-def wtf():
-    #run the graph
-    with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
-        outs = sess.run([turmoil_func()],feed_dict=None)
-        print(outs)
-    exit()
-
-def squared_error(preds, labels, mask):
-    """L2 loss refactored to incorporate masks"""
-    mask = tf.transpose(mask)
-    mask = tf.cast(mask,dtype=tf.float32)
-    mask = tf.expand_dims(mask,-1)
-    mask = tf.tile(mask,[1,2])
-    mask /= tf.reduce_mean(mask)
-
-    loss = tf.losses.mean_squared_error(labels,preds,reduction=tf.losses.Reduction.NONE)
-    loss = tf.multiply(loss,mask)
-    return tf.reduce_mean(loss)
-
-
-def masked_accuracy(preds, labels, mask):
-    """Accuracy with masking."""
-    mask=tf.transpose(mask)
-    mask = tf.cast(mask, dtype=tf.float32)
-    mask = tf.expand_dims(mask,-1)
-    mask = tf.tile(mask,[1,labels.shape[1]])
-    mask /= tf.reduce_mean(mask)
-
-    #mnabserr = tf.metrics.mean_absolute_error(labels,preds)
-    #accuracy_all = tf.multiply(mnabserr,mask)
-    #accuracy_all *= mask
-    
-    loss = tf.losses.mean_squared_error(labels,preds,reduction=tf.losses.Reduction.NONE)
-    loss = tf.multiply(loss,mask)
-    return tf.reduce_mean(loss)
-
-def wtf2():
-    #run the graph
-    with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
-        pred = tf.constant([[5.],[9],[3]])
-        labs = tf.constant([[3.],[10],[10]])
-        mask = tf.constant([1,0,1])
-        outs = sess.run([masked_accuracy(pred,labs,mask)],feed_dict=None)
-        print(outs)
-    exit()
-
-
-
-
-
 # Set random seed
 seed = 123
 np.random.seed(seed)
 tf.set_random_seed(seed)
 
 # Load data
-adj, features, y_train, y_val, y_test, train_mask, val_mask, test_mask,molecule_partitions, num_molecules = load_data3()
+load_previous = 0
+data_path = '../tem/'
+[target_mean,target_stdev,adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(data_path,load_previous)
 
-print("Finished loading data")
+print("Finished loading data!")
 
 
 # Settings
@@ -117,7 +43,7 @@ flags.DEFINE_integer('hidden12', 24, 'Number of units in hidden layer 12.')
 flags.DEFINE_integer('node_output_size', 10, 'Number of hidden features each node has prior to readout')
 flags.DEFINE_float('dropout', 0.2, 'Dropout rate (1 - keep probability).')
 flags.DEFINE_float('weight_decay', 5e-4, 'Weight for L2 loss on embedding matrix.')
-flags.DEFINE_integer('early_stopping', 300, 'Tolerance for early stopping (# of epochs).')
+flags.DEFINE_integer('early_stopping', 100, 'Tolerance for early stopping (# of epochs).')
 flags.DEFINE_integer('max_degree', 3, 'Maximum Chebyshev polynomial degree.')
 
 # Some preprocessing
@@ -150,7 +76,9 @@ placeholders = {
     'dropout': tf.placeholder_with_default(0., shape=(), name='dropout_meow'),
     'num_features_nonzero': tf.placeholder(tf.int32),  # helper variable for sparse dropout
     'molecule_partitions': tf.placeholder(tf.int32,shape=(molecule_partitions.shape)),
-    'num_molecules': tf.placeholder(tf.int32,shape=())
+    'num_molecules': tf.placeholder(tf.int32,shape=()),
+    'target_mean': tf.placeholder(tf.float32),
+    'target_stdev': tf.placeholder(tf.float32)
 }
 
 # Create model
@@ -167,11 +95,11 @@ summary_writer = tf.summary.FileWriter('../tensorboard/',sess.graph)
 
 
 # Define model evaluation function
-def evaluate(features, support, labels, mask, molecule_partitions, num_molecules, placeholders):
+def evaluate(target_mean, target_stdev, features, support, labels, mask, molecule_partitions, num_molecules, placeholders):
     t_test = time.time()
-    feed_dict_val = construct_feed_dict(features, support, labels, mask, molecule_partitions, num_molecules, placeholders)
-    outs_val = sess.run([model.loss, model.accuracy], feed_dict=feed_dict_val)
-    return outs_val[0], outs_val[1], (time.time() - t_test)
+    feed_dict_val = construct_feed_dict(target_mean, target_stdev, features, support, labels, mask, molecule_partitions, num_molecules, placeholders)
+    outs_val = sess.run([model.loss, model.accuracy,model.mae], feed_dict=feed_dict_val)
+    return outs_val[0], outs_val[1], outs_val[2], (time.time() - t_test)
 
 
 # Init variables
@@ -189,35 +117,35 @@ for epoch in range(FLAGS.epochs):
 
     t = time.time()
     # Construct feed dictionary
-    feed_dict = construct_feed_dict(features, support, y_train, train_mask, molecule_partitions, num_molecules, placeholders)
+    feed_dict = construct_feed_dict(target_mean, target_stdev, features, support, y_train, train_mask, molecule_partitions, num_molecules, placeholders)
     feed_dict.update({placeholders['dropout']: FLAGS.dropout})
 
     # Training step
-    outs = sess.run([model.opt_op, model.loss, model.accuracy,summary_ops,model.outputs], feed_dict=feed_dict)
+    outs = sess.run([model.opt_op, model.loss, model.accuracy,summary_ops,model.outputs,model.mae], feed_dict=feed_dict)
 
     summary_writer.add_summary(outs[3], epoch)
     #summary_writer.flush()
 
     # Validation
-    cost, acc, duration = evaluate(features, support, y_val, val_mask, molecule_partitions, num_molecules, placeholders)
+    cost, acc, mae, duration = evaluate(target_mean, target_stdev, features, support, y_val, val_mask, molecule_partitions, num_molecules, placeholders)
     cost_val.append(cost)
 
-    if (epoch == 100):
+    if (epoch == 50):
         FLAGS.learning_rate = 1.0
         print("Changing learning rate to: ", FLAGS.learning_rate)
-    if (epoch == 200):
+    if (epoch == 100):
         FLAGS.learning_rate = 0.5
         print("Changing learning rate to: ", FLAGS.learning_rate)
-    if (epoch == 300):
+    if (epoch == 200):
         FLAGS.learning_rate = 0.1
         print("Changing learning rate to: ", FLAGS.learning_rate)
-    if (epoch == 500):
+    if (epoch == 300):
         FLAGS.learning_rate = 0.05
         print("Changing learning rate to: ", FLAGS.learning_rate)
-    if (epoch == 1000):
+    if (epoch == 500):
         FLAGS.learning_rate = 0.01
         print("Changing learning rate to: ", FLAGS.learning_rate)
-    if (epoch == 3000):
+    if (epoch == 2000):
         FLAGS.learning_rate = 0.001
         print("Changing learning rate to: ", FLAGS.learning_rate)
 
@@ -227,8 +155,8 @@ for epoch in range(FLAGS.epochs):
 
     # Print results
     print("Epoch:", '%04d' % (epoch + 1), "train_loss=", "{:.5f}".format(outs[1]),
-          "val_loss=", "{:.5f}".format(cost), "train_acc=", "{:.5f}".format(outs[2]),
-          "val_acc=", "{:.5f}".format(acc), "time=", "{:.5f}".format(time.time() - t))
+          "val_loss=", "{:.5f}".format(cost), "train_acc= ", str(outs[2]),        
+          " val_acc= ", str(acc),"train_mae= ", str(outs[5]), "time=", "{:.5f}".format(time.time() - t))
 
     if epoch > FLAGS.early_stopping and cost_val[-1] > np.mean(cost_val[-(FLAGS.early_stopping+1):-1]):
         print("Early stopping...")
@@ -240,16 +168,18 @@ for epoch in range(FLAGS.epochs):
 print("Optimization Finished!")
 
 # Testing
-test_cost, test_acc, test_duration = evaluate(features, support, y_test, test_mask, molecule_partitions, num_molecules, placeholders)
+test_cost, test_acc, test_mae, test_duration = evaluate(target_mean, target_stdev, features, support, y_test, test_mask, molecule_partitions, num_molecules, placeholders)
 print("Test set results:", "cost=", "{:.5f}".format(test_cost),
-      "accuracy=", "{:.5f}".format(test_acc), "time=", "{:.5f}".format(test_duration))
+      "accuracy= ", str(test_acc), "mae= ", str(test_mae), "time=", "{:.5f}".format(test_duration))
 
 
-Costs_file = open("costs.txt","a+")
+Costs_file = open("analysis/costs.txt","a+")
 Costs_file.write("mu\n")
-Costs_file.write("Epochs: " + str(epoch + 1) + "\ntrain_loss= " + str(outs[1]) + "  train_acc= " + str(outs[2]) +
-      "\nval_loss= " +str(cost) + "  val_acc= " + str(acc))
+Costs_file.write("Epochs: " + str(epoch + 1) + "\ntrain_loss= " + str(outs[1]) + 
+    "      val_loss= " + str(cost) + "\ntrain_acc= " + str(outs[2]) + "\nval_acc= " + 
+    str(acc) + "\ntrain_mae= " + str(outs[5]))
 Costs_file.write("\n")
-Costs_file.write("Test cost= " + str(test_cost) + "  Test_acc= " +str(test_acc))
+Costs_file.write("Test cost= " + str(test_cost) + "\nTest_acc= " +str(test_acc))
+Costs_file.write("\nTest mae= " + str(test_mae))
 Costs_file.write("\n\n")
 Costs_file.close()

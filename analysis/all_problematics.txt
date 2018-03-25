@@ -1,0 +1,176 @@
+57 :  ../tem/dsgdb9nsd_059708.xyzCould not read first frame from XYZ file. Incorrect file format. 
+177 :  ../tem/dsgdb9nsd_050641.xyzinvalid literal for float(): -6.*^-6 
+2514 :  ../tem/dsgdb9nsd_132463.xyzCould not read first frame from XYZ file. Incorrect file format. 
+2929 :  ../tem/dsgdb9nsd_132186.xyzCould not read first frame from XYZ file. Incorrect file format. 
+6081 :  ../tem/dsgdb9nsd_095847.xyzCould not read first frame from XYZ file. Incorrect file format. 
+6492 :  ../tem/dsgdb9nsd_083689.xyzCould not read first frame from XYZ file. Incorrect file format. 
+6662 :  ../tem/dsgdb9nsd_004968.xyzCould not read first frame from XYZ file. Incorrect file format. 
+6887 :  ../tem/dsgdb9nsd_023717.xyzCould not read first frame from XYZ file. Incorrect file format. 
+7173 :  ../tem/dsgdb9nsd_003299.xyzCould not read first frame from XYZ file. Incorrect file format. 
+7597 :  ../tem/dsgdb9nsd_128917.xyzCould not read first frame from XYZ file. Incorrect file format. 
+8968 :  ../tem/dsgdb9nsd_093788.xyzCould not read first frame from XYZ file. Incorrect file format. 
+11800 :  ../tem/dsgdb9nsd_023944.xyzCould not read first frame from XYZ file. Incorrect file format. 
+12139 :  ../tem/dsgdb9nsd_034164.xyzCould not read first frame from XYZ file. Incorrect file format. 
+12783 :  ../tem/dsgdb9nsd_021389.xyzCould not read first frame from XYZ file. Incorrect file format. 
+13438 :  ../tem/dsgdb9nsd_066644.xyzCould not read first frame from XYZ file. Incorrect file format. 
+14009 :  ../tem/dsgdb9nsd_079189.xyzCould not read first frame from XYZ file. Incorrect file format. 
+15300 :  ../tem/dsgdb9nsd_003825.xyzCould not read first frame from XYZ file. Incorrect file format. 
+16025 :  ../tem/dsgdb9nsd_124157.xyzCould not read first frame from XYZ file. Incorrect file format. 
+16183 :  ../tem/dsgdb9nsd_038194.xyzCould not read first frame from XYZ file. Incorrect file format. 
+16374 :  ../tem/dsgdb9nsd_046334.xyzCould not read first frame from XYZ file. Incorrect file format. 
+16928 :  ../tem/dsgdb9nsd_072121.xyzCould not read first frame from XYZ file. Incorrect file format. 
+18243 :  ../tem/dsgdb9nsd_004925.xyzCould not read first frame from XYZ file. Incorrect file format. 
+18407 :  ../tem/dsgdb9nsd_118622.xyzCould not read first frame from XYZ file. Incorrect file format. 
+19919 :  ../tem/dsgdb9nsd_029550.xyzCould not read first frame from XYZ file. Incorrect file format. 
+20358 :  ../tem/dsgdb9nsd_131034.xyzCould not read first frame from XYZ file. Incorrect file format. 
+21243 :  ../tem/dsgdb9nsd_049797.xyzCould not read first frame from XYZ file. Incorrect file format. 
+22025 :  ../tem/dsgdb9nsd_048259.xyzCould not read first frame from XYZ file. Incorrect file format. 
+22722 :  ../tem/dsgdb9nsd_021352.xyzCould not read first frame from XYZ file. Incorrect file format. 
+25258 :  ../tem/dsgdb9nsd_009414.xyzCould not read first frame from XYZ file. Incorrect file format. 
+26122 :  ../tem/dsgdb9nsd_107496.xyzCould not read first frame from XYZ file. Incorrect file format. 
+27403 :  ../tem/dsgdb9nsd_118858.xyzCould not read first frame from XYZ file. Incorrect file format. 
+27945 :  ../tem/dsgdb9nsd_053667.xyzCould not read first frame from XYZ file. Incorrect file format. 
+29376 :  ../tem/dsgdb9nsd_071466.xyzCould not read first frame from XYZ file. Incorrect file format. 
+29412 :  ../tem/dsgdb9nsd_095418.xyzCould not read first frame from XYZ file. Incorrect file format. 
+29445 :  ../tem/dsgdb9nsd_094097.xyzCould not read first frame from XYZ file. Incorrect file format. 
+29535 :  ../tem/dsgdb9nsd_095149.xyzCould not read first frame from XYZ file. Incorrect file format. 
+29647 :  ../tem/dsgdb9nsd_131163.xyzCould not read first frame from XYZ file. Incorrect file format. 
+30501 :  ../tem/dsgdb9nsd_019411.xyzCould not read first frame from XYZ file. Incorrect file format. 
+30749 :  ../tem/dsgdb9nsd_042678.xyzCould not read first frame from XYZ file. Incorrect file format. 
+31653 :  ../tem/dsgdb9nsd_101220.xyzCould not read first frame from XYZ file. Incorrect file format. 
+31707 :  ../tem/dsgdb9nsd_070104.xyzCould not read first frame from XYZ file. Incorrect file format. 
+31755 :  ../tem/dsgdb9nsd_039459.xyzinvalid literal for float(): -3.*^-6 
+32328 :  ../tem/dsgdb9nsd_104557.xyzCould not read first frame from XYZ file. Incorrect file format. 
+33072 :  ../tem/dsgdb9nsd_002624.xyzCould not read first frame from XYZ file. Incorrect file format. 
+33146 :  ../tem/dsgdb9nsd_023311.xyzCould not read first frame from XYZ file. Incorrect file format. 
+34302 :  ../tem/dsgdb9nsd_109036.xyzinvalid literal for float(): 4.*^-6 
+34315 :  ../tem/dsgdb9nsd_024986.xyzCould not read first frame from XYZ file. Incorrect file format. 
+35326 :  ../tem/dsgdb9nsd_075954.xyzinvalid literal for float(): 8.*^-6 
+35421 :  ../tem/dsgdb9nsd_125691.xyzCould not read first frame from XYZ file. Incorrect file format. 
+35688 :  ../tem/dsgdb9nsd_069188.xyzCould not read first frame from XYZ file. Incorrect file format. 
+36117 :  ../tem/dsgdb9nsd_075823.xyzCould not read first frame from XYZ file. Incorrect file format. 
+37476 :  ../tem/dsgdb9nsd_124259.xyzCould not read first frame from XYZ file. Incorrect file format. 
+37901 :  ../tem/dsgdb9nsd_064893.xyzCould not read first frame from XYZ file. Incorrect file format. 
+39264 :  ../tem/dsgdb9nsd_122327.xyzCould not read first frame from XYZ file. Incorrect file format. 
+39579 :  ../tem/dsgdb9nsd_032310.xyzCould not read first frame from XYZ file. Incorrect file format. 
+40094 :  ../tem/dsgdb9nsd_059235.xyzinvalid literal for float(): -8.*^-6 
+40249 :  ../tem/dsgdb9nsd_052936.xyzinvalid literal for float(): 5.*^-6 
+40300 :  ../tem/dsgdb9nsd_073693.xyzCould not read first frame from XYZ file. Incorrect file format. 
+40364 :  ../tem/dsgdb9nsd_001460.xyzCould not read first frame from XYZ file. Incorrect file format. 
+40544 :  ../tem/dsgdb9nsd_002993.xyzCould not read first frame from XYZ file. Incorrect file format. 
+41308 :  ../tem/dsgdb9nsd_020335.xyzCould not read first frame from XYZ file. Incorrect file format. 
+42957 :  ../tem/dsgdb9nsd_078680.xyzCould not read first frame from XYZ file. Incorrect file format. 
+45210 :  ../tem/dsgdb9nsd_080641.xyzCould not read first frame from XYZ file. Incorrect file format. 
+45601 :  ../tem/dsgdb9nsd_116325.xyzCould not read first frame from XYZ file. Incorrect file format. 
+46258 :  ../tem/dsgdb9nsd_071584.xyzCould not read first frame from XYZ file. Incorrect file format. 
+46655 :  ../tem/dsgdb9nsd_123186.xyzCould not read first frame from XYZ file. Incorrect file format. 
+46671 :  ../tem/dsgdb9nsd_071738.xyzCould not read first frame from XYZ file. Incorrect file format. 
+47912 :  ../tem/dsgdb9nsd_084759.xyzinvalid literal for float(): 6.*^-6 
+47983 :  ../tem/dsgdb9nsd_025453.xyzCould not read first frame from XYZ file. Incorrect file format. 
+48380 :  ../tem/dsgdb9nsd_096194.xyzCould not read first frame from XYZ file. Incorrect file format. 
+52068 :  ../tem/dsgdb9nsd_061658.xyzCould not read first frame from XYZ file. Incorrect file format. 
+52090 :  ../tem/dsgdb9nsd_045823.xyzCould not read first frame from XYZ file. Incorrect file format. 
+52140 :  ../tem/dsgdb9nsd_033387.xyzCould not read first frame from XYZ file. Incorrect file format. 
+52284 :  ../tem/dsgdb9nsd_095104.xyzCould not read first frame from XYZ file. Incorrect file format. 
+53243 :  ../tem/dsgdb9nsd_030547.xyzCould not read first frame from XYZ file. Incorrect file format. 
+54141 :  ../tem/dsgdb9nsd_057588.xyzCould not read first frame from XYZ file. Incorrect file format. 
+54651 :  ../tem/dsgdb9nsd_080626.xyzinvalid literal for float(): 5.*^-6 
+55402 :  ../tem/dsgdb9nsd_132540.xyzCould not read first frame from XYZ file. Incorrect file format. 
+56728 :  ../tem/dsgdb9nsd_015629.xyzCould not read first frame from XYZ file. Incorrect file format. 
+57350 :  ../tem/dsgdb9nsd_132932.xyzCould not read first frame from XYZ file. Incorrect file format. 
+57681 :  ../tem/dsgdb9nsd_124228.xyzinvalid literal for float(): 4.*^-6 
+57711 :  ../tem/dsgdb9nsd_027882.xyzCould not read first frame from XYZ file. Incorrect file format. 
+60466 :  ../tem/dsgdb9nsd_057217.xyzCould not read first frame from XYZ file. Incorrect file format. 
+61617 :  ../tem/dsgdb9nsd_000212.xyzCould not read first frame from XYZ file. Incorrect file format. 
+62840 :  ../tem/dsgdb9nsd_032045.xyzCould not read first frame from XYZ file. Incorrect file format. 
+64383 :  ../tem/dsgdb9nsd_113841.xyzinvalid literal for float(): -6.*^-6 
+65992 :  ../tem/dsgdb9nsd_004576.xyzCould not read first frame from XYZ file. Incorrect file format. 
+67214 :  ../tem/dsgdb9nsd_026304.xyzCould not read first frame from XYZ file. Incorrect file format. 
+67780 :  ../tem/dsgdb9nsd_025430.xyzCould not read first frame from XYZ file. Incorrect file format. 
+68105 :  ../tem/dsgdb9nsd_010927.xyzCould not read first frame from XYZ file. Incorrect file format. 
+68156 :  ../tem/dsgdb9nsd_064139.xyzCould not read first frame from XYZ file. Incorrect file format. 
+70091 :  ../tem/dsgdb9nsd_025841.xyzCould not read first frame from XYZ file. Incorrect file format. 
+70426 :  ../tem/dsgdb9nsd_115484.xyzCould not read first frame from XYZ file. Incorrect file format. 
+71701 :  ../tem/dsgdb9nsd_024513.xyzCould not read first frame from XYZ file. Incorrect file format. 
+72826 :  ../tem/dsgdb9nsd_060790.xyzCould not read first frame from XYZ file. Incorrect file format. 
+72980 :  ../tem/dsgdb9nsd_098794.xyzCould not read first frame from XYZ file. Incorrect file format. 
+73412 :  ../tem/dsgdb9nsd_132571.xyzCould not read first frame from XYZ file. Incorrect file format. 
+73594 :  ../tem/dsgdb9nsd_124833.xyzCould not read first frame from XYZ file. Incorrect file format. 
+73900 :  ../tem/dsgdb9nsd_131934.xyzCould not read first frame from XYZ file. Incorrect file format. 
+75143 :  ../tem/dsgdb9nsd_011370.xyzCould not read first frame from XYZ file. Incorrect file format. 
+75632 :  ../tem/dsgdb9nsd_017522.xyzCould not read first frame from XYZ file. Incorrect file format. 
+77108 :  ../tem/dsgdb9nsd_122276.xyzCould not read first frame from XYZ file. Incorrect file format. 
+77403 :  ../tem/dsgdb9nsd_002091.xyzCould not read first frame from XYZ file. Incorrect file format. 
+78529 :  ../tem/dsgdb9nsd_086922.xyzCould not read first frame from XYZ file. Incorrect file format. 
+78898 :  ../tem/dsgdb9nsd_025015.xyzCould not read first frame from XYZ file. Incorrect file format. 
+80310 :  ../tem/dsgdb9nsd_004724.xyzCould not read first frame from XYZ file. Incorrect file format. 
+80479 :  ../tem/dsgdb9nsd_127392.xyzCould not read first frame from XYZ file. Incorrect file format. 
+80695 :  ../tem/dsgdb9nsd_035705.xyzCould not read first frame from XYZ file. Incorrect file format. 
+82336 :  ../tem/dsgdb9nsd_132519.xyzCould not read first frame from XYZ file. Incorrect file format. 
+82570 :  ../tem/dsgdb9nsd_031446.xyzCould not read first frame from XYZ file. Incorrect file format. 
+85254 :  ../tem/dsgdb9nsd_090381.xyzCould not read first frame from XYZ file. Incorrect file format. 
+86241 :  ../tem/dsgdb9nsd_004481.xyzCould not read first frame from XYZ file. Incorrect file format. 
+87018 :  ../tem/dsgdb9nsd_054252.xyzCould not read first frame from XYZ file. Incorrect file format. 
+88269 :  ../tem/dsgdb9nsd_010422.xyzCould not read first frame from XYZ file. Incorrect file format. 
+89713 :  ../tem/dsgdb9nsd_003574.xyzinvalid literal for float(): -7.*^-6 
+89835 :  ../tem/dsgdb9nsd_110411.xyzinvalid literal for float(): -9.*^-6 
+90729 :  ../tem/dsgdb9nsd_052776.xyzCould not read first frame from XYZ file. Incorrect file format. 
+93407 :  ../tem/dsgdb9nsd_041838.xyzinvalid literal for float(): -2.*^-6 
+94217 :  ../tem/dsgdb9nsd_077229.xyzCould not read first frame from XYZ file. Incorrect file format. 
+94587 :  ../tem/dsgdb9nsd_033702.xyzCould not read first frame from XYZ file. Incorrect file format. 
+96164 :  ../tem/dsgdb9nsd_014838.xyzinvalid literal for float(): 1.*^-6 
+96495 :  ../tem/dsgdb9nsd_002693.xyzCould not read first frame from XYZ file. Incorrect file format. 
+96707 :  ../tem/dsgdb9nsd_004095.xyzCould not read first frame from XYZ file. Incorrect file format. 
+97615 :  ../tem/dsgdb9nsd_084020.xyzCould not read first frame from XYZ file. Incorrect file format. 
+98896 :  ../tem/dsgdb9nsd_057125.xyzCould not read first frame from XYZ file. Incorrect file format. 
+99080 :  ../tem/dsgdb9nsd_035927.xyzCould not read first frame from XYZ file. Incorrect file format. 
+100086 :  ../tem/dsgdb9nsd_127343.xyzinvalid literal for float(): -3.*^-6 
+101478 :  ../tem/dsgdb9nsd_112340.xyzCould not read first frame from XYZ file. Incorrect file format. 
+103370 :  ../tem/dsgdb9nsd_026292.xyzCould not read first frame from XYZ file. Incorrect file format. 
+103491 :  ../tem/dsgdb9nsd_005005.xyzCould not read first frame from XYZ file. Incorrect file format. 
+103599 :  ../tem/dsgdb9nsd_038975.xyzinvalid literal for float(): 1.*^-6 
+104048 :  ../tem/dsgdb9nsd_038620.xyzCould not read first frame from XYZ file. Incorrect file format. 
+104257 :  ../tem/dsgdb9nsd_018369.xyzinvalid literal for float(): -7.*^-6 
+106412 :  ../tem/dsgdb9nsd_057288.xyzCould not read first frame from XYZ file. Incorrect file format. 
+106692 :  ../tem/dsgdb9nsd_061269.xyzCould not read first frame from XYZ file. Incorrect file format. 
+107074 :  ../tem/dsgdb9nsd_042728.xyzCould not read first frame from XYZ file. Incorrect file format. 
+107584 :  ../tem/dsgdb9nsd_127648.xyzCould not read first frame from XYZ file. Incorrect file format. 
+108642 :  ../tem/dsgdb9nsd_098954.xyzCould not read first frame from XYZ file. Incorrect file format. 
+109663 :  ../tem/dsgdb9nsd_056680.xyzCould not read first frame from XYZ file. Incorrect file format. 
+109844 :  ../tem/dsgdb9nsd_077712.xyzCould not read first frame from XYZ file. Incorrect file format. 
+110528 :  ../tem/dsgdb9nsd_112773.xyzCould not read first frame from XYZ file. Incorrect file format. 
+110618 :  ../tem/dsgdb9nsd_020351.xyzCould not read first frame from XYZ file. Incorrect file format. 
+110656 :  ../tem/dsgdb9nsd_130876.xyzCould not read first frame from XYZ file. Incorrect file format. 
+111209 :  ../tem/dsgdb9nsd_001616.xyzCould not read first frame from XYZ file. Incorrect file format. 
+111461 :  ../tem/dsgdb9nsd_057755.xyzCould not read first frame from XYZ file. Incorrect file format. 
+114492 :  ../tem/dsgdb9nsd_058392.xyzCould not read first frame from XYZ file. Incorrect file format. 
+114801 :  ../tem/dsgdb9nsd_112542.xyzCould not read first frame from XYZ file. Incorrect file format. 
+114949 :  ../tem/dsgdb9nsd_034270.xyzCould not read first frame from XYZ file. Incorrect file format. 
+115393 :  ../tem/dsgdb9nsd_004611.xyzCould not read first frame from XYZ file. Incorrect file format. 
+116182 :  ../tem/dsgdb9nsd_075050.xyzCould not read first frame from XYZ file. Incorrect file format. 
+117200 :  ../tem/dsgdb9nsd_025433.xyzCould not read first frame from XYZ file. Incorrect file format. 
+117665 :  ../tem/dsgdb9nsd_004316.xyzCould not read first frame from XYZ file. Incorrect file format. 
+118398 :  ../tem/dsgdb9nsd_029555.xyzCould not read first frame from XYZ file. Incorrect file format. 
+118536 :  ../tem/dsgdb9nsd_019132.xyzCould not read first frame from XYZ file. Incorrect file format. 
+118717 :  ../tem/dsgdb9nsd_021421.xyzCould not read first frame from XYZ file. Incorrect file format. 
+119568 :  ../tem/dsgdb9nsd_036818.xyzCould not read first frame from XYZ file. Incorrect file format. 
+119608 :  ../tem/dsgdb9nsd_125495.xyzCould not read first frame from XYZ file. Incorrect file format. 
+119620 :  ../tem/dsgdb9nsd_091743.xyzCould not read first frame from XYZ file. Incorrect file format. 
+120845 :  ../tem/dsgdb9nsd_023990.xyzCould not read first frame from XYZ file. Incorrect file format. 
+121387 :  ../tem/dsgdb9nsd_073686.xyzCould not read first frame from XYZ file. Incorrect file format. 
+121955 :  ../tem/dsgdb9nsd_104899.xyzCould not read first frame from XYZ file. Incorrect file format. 
+122468 :  ../tem/dsgdb9nsd_090456.xyzinvalid literal for float(): 9.*^-6 
+123945 :  ../tem/dsgdb9nsd_110681.xyzinvalid literal for float(): 8.*^-6 
+124918 :  ../tem/dsgdb9nsd_074498.xyzCould not read first frame from XYZ file. Incorrect file format. 
+125171 :  ../tem/dsgdb9nsd_007223.xyzCould not read first frame from XYZ file. Incorrect file format. 
+126263 :  ../tem/dsgdb9nsd_130806.xyzCould not read first frame from XYZ file. Incorrect file format. 
+127137 :  ../tem/dsgdb9nsd_078830.xyzCould not read first frame from XYZ file. Incorrect file format. 
+128978 :  ../tem/dsgdb9nsd_101594.xyzCould not read first frame from XYZ file. Incorrect file format. 
+129011 :  ../tem/dsgdb9nsd_071817.xyzCould not read first frame from XYZ file. Incorrect file format. 
+129459 :  ../tem/dsgdb9nsd_003454.xyzCould not read first frame from XYZ file. Incorrect file format. 
+130729 :  ../tem/dsgdb9nsd_015707.xyzCould not read first frame from XYZ file. Incorrect file format. 
+130991 :  ../tem/dsgdb9nsd_030693.xyzCould not read first frame from XYZ file. Incorrect file format. 
+131560 :  ../tem/dsgdb9nsd_045658.xyzCould not read first frame from XYZ file. Incorrect file format. 
+132087 :  ../tem/dsgdb9nsd_001513.xyzCould not read first frame from XYZ file. Incorrect file format. 
+132646 :  ../tem/dsgdb9nsd_099031.xyzCould not read first frame from XYZ file. Incorrect file format. 
+133497 :  ../tem/dsgdb9nsd_025366.xyzCould not read first frame from XYZ file. Incorrect file format. 

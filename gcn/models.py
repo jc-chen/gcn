@@ -30,6 +30,7 @@ class Model(object):
         self.molecule_partitions = None
         self.num_molecules = None
 
+        self.mae = 0
         self.loss = 0
         self.accuracy = 0
         self.optimizer = None
@@ -57,7 +58,7 @@ class Model(object):
         # Build metrics
         self._loss()
         self._accuracy()
-
+        self._mae()
         self.opt_op = self.optimizer.minimize(self.loss)
 
     def predict(self):
@@ -67,6 +68,10 @@ class Model(object):
         raise NotImplementedError
 
     def _accuracy(self):
+        raise NotImplementedError
+
+
+    def _mae(self):
         raise NotImplementedError
 
     def save(self, sess=None):
@@ -216,7 +221,11 @@ class JCNN(Model):
 
     def _accuracy(self):
         self.accuracy = masked_accuracy(self.outputs, self.placeholders['labels'],
-                                        self.placeholders['labels_mask'])
+                                        self.placeholders['labels_mask'],self.placeholders['target_mean'],
+                                        self.placeholders['target_stdev'])
+    def _mae(self):
+        self.mae = mean_absolute_error(self.outputs, self.placeholders['labels'],
+                                    self.placeholders['labels_mask'])
 
     def _build(self):
 
