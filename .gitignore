@@ -1,2 +1,4 @@
 tensorboard/
 *.pyc
+analysis/*
+__pycache__/*
