@@ -36,7 +36,6 @@ def mean_absolute_error(preds,labels,mask):
 
 def square_error(preds, labels, mask):
     """L2 loss refactored to incorporate masks"""
-    #n = len(preds)
     mask = tf.cast(mask,dtype=tf.float32)
     mask = tf.expand_dims(mask,-1)
     mask = tf.tile(mask,[1,labels.shape[1].value])

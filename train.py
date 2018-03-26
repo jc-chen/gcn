@@ -5,7 +5,7 @@ import time
 import tensorflow as tf
 
 from gcn.utils2 import *
-from gcn.models import GCN, MLP, JCNN
+from gcn.models import JCNN
 
 
 # Set random seed
@@ -15,8 +15,8 @@ tf.set_random_seed(seed)
 
 # Load data
 load_previous = 0
-data_path = '../tem/'
-data_path_new = '../tem/test/'
+#########[target_mean,target_stdev,adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(data_path,load_previous)
+data_path = '../tem_1000/'
 
 [adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(data_path,load_previous)
 [adj_new,features_new,y_new,molecule_partitions_new,num_molecules_new]=load_data_new(data_path_new)
@@ -53,19 +53,7 @@ flags.DEFINE_integer('max_degree', 3, 'Maximum Chebyshev polynomial degree.')
 
 # Some preprocessing
 features = preprocess_features(features)
-if FLAGS.model == 'gcn':
-    support = [preprocess_adj(adj)]
-    num_supports = 1
-    model_func = GCN
-elif FLAGS.model == 'gcn_cheby':
-    support = chebyshev_polynomials(adj, FLAGS.max_degree)
-    num_supports = 1 + FLAGS.max_degree
-    model_func = GCN
-elif FLAGS.model == 'dense':
-    support = [preprocess_adj(adj)]  # Not used
-    num_supports = 1
-    model_func = MLP
-elif FLAGS.model == 'jcnn':
+if FLAGS.model == 'jcnn':
     support = [preprocess_adj(adj)]  # Not used
     num_supports = 1
     model_func = JCNN
