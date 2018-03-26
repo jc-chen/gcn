@@ -3,3 +3,5 @@ tensorboard/
 analysis/
 __pycache__/
 loaded_data/
+trained-model*
+checkpoint

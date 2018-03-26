@@ -14,7 +14,7 @@ np.random.seed(seed)
 tf.set_random_seed(seed)
 
 # Load data
-load_previous = 0
+load_previous = 1
 #########[target_mean,target_stdev,adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(data_path,load_previous)
 data_path = '../tem_1000/' #'../batches/batch0/'
 
@@ -72,18 +72,13 @@ placeholders = {
     'num_molecules': tf.placeholder(tf.int32,shape=())
 }
 
+
+
+
+
 # Create model
 model = model_func(placeholders, input_dim=features[2][1], logging=True)
 #input_dim is like...if you have k features for each node, then input_dim=k
-
-
-# Initialize session
-saver = tf.train.Saver()
-sess = tf.Session()
-
-# Tensorboard stuff
-summary_ops = tf.summary.merge_all()
-summary_writer = tf.summary.FileWriter('../tensorboard/',sess.graph)
 
 
 # Define model evaluation function
@@ -96,6 +91,16 @@ def evaluate(features, support, labels, molecule_partitions, num_molecules, plac
     feed_dict_val = construct_feed_dict(features, support, labels, mask, molecule_partitions, num_molecules, placeholders)
     outs_val = sess.run([model.loss, model.accuracy,model.mae], feed_dict=feed_dict_val)
     return outs_val[0], outs_val[1], outs_val[2], (time.time() - t_test)
+
+
+
+# Initialize session
+saver = tf.train.Saver()
+sess = tf.Session()
+
+# Tensorboard stuff
+summary_ops = tf.summary.merge_all()
+summary_writer = tf.summary.FileWriter('../tensorboard/',sess.graph)
 
 
 # Init variables
@@ -132,7 +137,7 @@ for epoch in range(FLAGS.epochs):
         print("Changing learning rate to: ", FLAGS.learning_rate)
     if (epoch == 120):
         FLAGS.learning_rate = 1.0
-    if (epoch == 1000):
+    if (epoch == 300):
         FLAGS.learning_rate = 0.5
         print("Changing learning rate to: ", FLAGS.learning_rate)
     if (epoch == 1200):
@@ -165,7 +170,14 @@ for epoch in range(FLAGS.epochs):
 print("Optimization Finished!")
 
 
+plswork = sess.run(model.vars,feed_dict=feed_dict)
+
+print(plswork)
+
 saver.save(sess,'./trained-model')
+
+
+exit()
 
 # Testing
 test_cost, test_acc, test_mae, test_duration = evaluate(features, support, y_test, molecule_partitions, num_molecules, placeholders,mask=test_mask)

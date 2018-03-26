@@ -583,3 +583,27 @@ Test_acc= [nan nan nan nan nan nan nan nan nan nan nan nan]
 Test mae= [0.07389993 0.15917091 0.00587346 0.02492356 0.02253372 0.33020216
  0.00330922 0.19023459 0.21679176 0.235212   0.18350843 0.11866412]
 
+mu
+Epochs: 289
+train_loss= 0.985769      val_loss= 1.0270882
+train_acc= [nan nan nan nan nan nan nan nan nan nan nan nan]
+val_acc= [nan nan nan nan nan nan nan nan nan nan nan nan]
+train_mae= [0.80229676 0.7475787  0.7012879  0.7976355  0.82915705 0.77869517
+ 0.7725776  0.7555616  0.75556797 0.7555633  0.75555575 0.7833763 ]
+Test cost= 0.9883013
+Test_acc= [nan nan nan nan nan nan nan nan nan nan nan nan]
+Test mae= [0.8091862  0.7889867  0.69080657 0.8595122  0.81850696 0.8221204
+ 0.80927944 0.69128436 0.6912884  0.69128764 0.6912765  0.8153122 ]
+
+mu
+Epochs: 289
+train_loss= 0.985769      val_loss= 1.0270882
+train_acc= [nan nan nan nan nan nan nan nan nan nan nan nan]
+val_acc= [nan nan nan nan nan nan nan nan nan nan nan nan]
+train_mae= [0.80229676 0.7475787  0.7012879  0.7976355  0.82915705 0.77869517
+ 0.7725776  0.7555616  0.75556797 0.7555633  0.75555575 0.7833763 ]
+Test cost= 0.9883013
+Test_acc= [nan nan nan nan nan nan nan nan nan nan nan nan]
+Test mae= [0.8091862  0.7889867  0.69080657 0.8595122  0.81850696 0.8221204
+ 0.80927944 0.69128436 0.6912884  0.69128764 0.6912765  0.8153122 ]
+
