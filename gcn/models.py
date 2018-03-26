@@ -49,10 +49,8 @@ class Model(object):
         """ Wrapper for _build() """
         with tf.variable_scope(self.name):
             self._build()
-
-
-        self.target_mean = tf.Variable(tf.zeros([self.placeholders['labels'].shape[1].value]), dtype=tf.float32)
-        self.target_stdev = tf.Variable(tf.zeros([self.placeholders['labels'].shape[1].value]), dtype=tf.float32)
+            self.target_mean = tf.Variable(tf.zeros([self.placeholders['labels'].shape[1].value]), dtype=tf.float32, trainable=False)
+            self.target_stdev = tf.Variable(tf.zeros([self.placeholders['labels'].shape[1].value]), dtype=tf.float32, trainable=False)
 
         #Setting for easy access
         self.target_mask = self.placeholders['labels_mask']

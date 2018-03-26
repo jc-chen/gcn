@@ -232,11 +232,10 @@ def load_data_new(path,flag=0):
 
     adj = sp.csr_matrix(sp.block_diag(A))
 
-    labels = target
+    y = np.array(target)
 
     print("defined labels")
 
-    y = labels
     feats = sp.coo_matrix(np.array(features)).tolil()
 
     #TODO, decide how to handle this
