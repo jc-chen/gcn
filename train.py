@@ -5,7 +5,7 @@ import time
 import tensorflow as tf
 
 from gcn.utils2 import *
-from gcn.models import GCN, MLP, JCNN
+from gcn.models import JCNN
 
 
 # Set random seed
@@ -51,19 +51,7 @@ flags.DEFINE_integer('max_degree', 3, 'Maximum Chebyshev polynomial degree.')
 
 # Some preprocessing
 features = preprocess_features(features)
-if FLAGS.model == 'gcn':
-    support = [preprocess_adj(adj)]
-    num_supports = 1
-    model_func = GCN
-elif FLAGS.model == 'gcn_cheby':
-    support = chebyshev_polynomials(adj, FLAGS.max_degree)
-    num_supports = 1 + FLAGS.max_degree
-    model_func = GCN
-elif FLAGS.model == 'dense':
-    support = [preprocess_adj(adj)]  # Not used
-    num_supports = 1
-    model_func = MLP
-elif FLAGS.model == 'jcnn':
+if FLAGS.model == 'jcnn':
     support = [preprocess_adj(adj)]  # Not used
     num_supports = 1
     model_func = JCNN
@@ -109,9 +97,7 @@ sess.run(tf.global_variables_initializer())
 #normalize targets in model
 [m,s]=sess.run([model.get_mean,model.get_std], feed_dict={placeholders['labels']: y_train, placeholders['labels_mask']: train_mask})
 
-print('NEW MEAN:',m)
-print('NEW STD:',s)
-exit()
+
 #summary_writer = tf.train.SummaryWriter('/tmp/logs', sess.graph_def)
 
 # Train model

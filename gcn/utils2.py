@@ -137,7 +137,7 @@ def load_data3(path,flag=0):
     """Load data."""
 
     if (flag==1):
-        return load_pickled('target_mean','target_stdev','adj','features','y_train',
+        return load_pickled('adj','features','y_train',
             'y_val', 'y_test','train_mask','val_mask','test_mask','molecule_partitions','num_molecules')
 
     features = [] #features of each node
@@ -181,15 +181,10 @@ def load_data3(path,flag=0):
 
     y_train = np.zeros(labels.shape)
     y_val = np.zeros(labels.shape)
-    #y_test = np.zeros(labels.shape)
+    y_test = np.zeros(labels.shape)
     y_train[train_mask] = labels[train_mask]
-    #y_test[test_mask] = labels[test_mask]
+    y_test[test_mask] = labels[test_mask]
     y_val[val_mask] = labels[val_mask]
-
-
-    #FOR DEBUGGING PURPOSES
-    print('PREVIOUS MEAN:',np.mean(labels[train_mask],axis=0))
-    print('PREVIOUS STD:',np.std(labels[train_mask],axis=0))
 
     feats = sp.coo_matrix(np.array(features)).tolil()
 
