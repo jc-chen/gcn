@@ -19,6 +19,9 @@ def masked_accuracy(preds, labels, mask, target_mean, target_stdev):
     #mnabserr = tf.metrics.mean_absolute_error(labels,preds)
     #accuracy_all = tf.multiply(mnabserr,mask)
     #accuracy_all *= mask
+
+    labels *= mask #fixes an annoying divide by 0 problem
+
     denom = tf.abs(labels + target_mean/target_stdev)
     diff = tf.abs(tf.subtract(labels,preds))
     loss = tf.divide(diff,denom)
