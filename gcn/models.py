@@ -49,10 +49,8 @@ class Model(object):
         """ Wrapper for _build() """
         with tf.variable_scope(self.name):
             self._build()
-
-
-        self.target_mean = tf.Variable(tf.zeros([self.placeholders['labels'].shape[1].value]), dtype=tf.float32)
-        self.target_stdev = tf.Variable(tf.zeros([self.placeholders['labels'].shape[1].value]), dtype=tf.float32)
+            self.target_mean = tf.Variable(tf.zeros([self.placeholders['labels'].shape[1].value]), dtype=tf.float32, trainable=False)
+            self.target_stdev = tf.Variable(tf.zeros([self.placeholders['labels'].shape[1].value]), dtype=tf.float32, trainable=False)
 
         #Setting for easy access
         self.target_mask = self.placeholders['labels_mask']
@@ -99,7 +97,7 @@ class Model(object):
         mask = tf.tile(mask,[1,labels.shape[1].value])
 
         mean = tf.reduce_sum(labels*mask,axis=0)/num_items
-        
+
         std = tf.sqrt(tf.reduce_sum(tf.square(labels-mean)*mask,axis=0)/(num_items-1))
 
         return mean,std

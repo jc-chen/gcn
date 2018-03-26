@@ -19,10 +19,12 @@ data_path = '../tem/'
 data_path_new = '../tem/test/'
 
 [adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(data_path,load_previous)
-# [adj_new,features_new,y_new,molecule_partitions_new,num_molecules_new]=load_data_new(data_path_new)
+[adj_new,features_new,y_new,molecule_partitions_new,num_molecules_new]=load_data_new(data_path_new)
+
+support_new = [preprocess_adj(adj_new)]
+features_new = preprocess_features(features_new)
 
 print("Finished loading data!")
-
 
 # Settings
 flags = tf.app.flags
@@ -30,7 +32,7 @@ FLAGS = flags.FLAGS
 flags.DEFINE_string('dataset', 'cora', 'Dataset string.')  # 'cora', 'citeseer', 'pubmed'
 flags.DEFINE_string('model', 'jcnn', 'Model string.')  # 'gcn', 'gcn_cheby', 'dense'
 flags.DEFINE_float('learning_rate', 3.0, 'Initial learning rate.')
-flags.DEFINE_integer('epochs', 5000, 'Number of epochs to train.')
+flags.DEFINE_integer('epochs', 10, 'Number of epochs to train.')
 flags.DEFINE_integer('hidden1', 36, 'Number of units in hidden layer 1.')
 flags.DEFINE_integer('hidden2', 30, 'Number of units in hidden layer 2.')
 flags.DEFINE_integer('hidden3', 34, 'Number of units in hidden layer 3.')
@@ -96,7 +98,11 @@ summary_writer = tf.summary.FileWriter('../tensorboard/',sess.graph)
 
 
 # Define model evaluation function
-def evaluate(features, support, labels, mask, molecule_partitions, num_molecules, placeholders):
+def evaluate(features, support, labels, molecule_partitions, num_molecules, placeholders, mask=None):
+
+    if mask is None:
+        mask = np.array(np.ones(labels.shape[0]), dtype=np.bool)
+
     t_test = time.time()
     feed_dict_val = construct_feed_dict(features, support, labels, mask, molecule_partitions, num_molecules, placeholders)
     outs_val = sess.run([model.loss, model.accuracy,model.mae], feed_dict=feed_dict_val)
@@ -109,9 +115,8 @@ sess.run(tf.global_variables_initializer())
 #normalize targets in model
 [m,s]=sess.run([model.get_mean,model.get_std], feed_dict={placeholders['labels']: y_train, placeholders['labels_mask']: train_mask})
 
-print('NEW MEAN:',m)
-print('NEW STD:',s)
-exit()
+cost_val = []
+
 #summary_writer = tf.train.SummaryWriter('/tmp/logs', sess.graph_def)
 
 # Train model
@@ -131,7 +136,7 @@ for epoch in range(FLAGS.epochs):
     #summary_writer.flush()
 
     # Validation
-    cost, acc, mae, duration = evaluate(features, support, y_val, val_mask, molecule_partitions, num_molecules, placeholders)
+    cost, acc, mae, duration = evaluate(features, support, y_val, molecule_partitions, num_molecules, placeholders, mask=val_mask)
     cost_val.append(cost)
 
     if (epoch == 50):
@@ -167,21 +172,18 @@ for epoch in range(FLAGS.epochs):
         break
 
 
-
-
 print("Optimization Finished!")
 
 # Testing
-test_cost, test_acc, test_mae, test_duration = evaluate(features, support, y_test, test_mask, molecule_partitions, num_molecules, placeholders)
+test_cost, test_acc, test_mae, test_duration = evaluate(features, support, y_test, molecule_partitions, num_molecules, placeholders,mask=test_mask)
 print("Test set results:", "cost=", "{:.5f}".format(test_cost),
       "accuracy= ", str(test_acc), "mae= ", str(test_mae), "time=", "{:.5f}".format(test_duration))
 
-
-
 #New testing 
-# test_cost, test_acc, test_mae, test_duration = evaluate(features, support, y_test, test_mask, molecule_partitions, num_molecules, placeholders)
-# print("Test set results:", "cost=", "{:.5f}".format(test_cost),
-#       "accuracy= ", str(test_acc), "mae= ", str(test_mae), "time=", "{:.5f}".format(test_duration))
+test_cost, test_acc, test_mae, test_duration = evaluate(features_new, support_new, y_new, molecule_partitions_new, num_molecules_new, placeholders)
+print("New test set results:", "cost=", "{:.5f}".format(test_cost),
+      "accuracy= ", str(test_acc), "mae= ", str(test_mae), "time=", "{:.5f}".format(test_duration))
+
 
 Costs_file = open("analysis/costs.txt","a+")
 Costs_file.write("mu\n")

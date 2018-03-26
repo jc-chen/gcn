@@ -16,7 +16,6 @@ def masked_accuracy(preds, labels, mask, target_mean, target_stdev):
     mask = tf.expand_dims(mask,-1)
     mask = tf.tile(mask,[1,labels.shape[1].value])
     mask /= tf.reduce_mean(mask)
-
     #mnabserr = tf.metrics.mean_absolute_error(labels,preds)
     #accuracy_all = tf.multiply(mnabserr,mask)
     #accuracy_all *= mask

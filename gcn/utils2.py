@@ -227,11 +227,10 @@ def load_data_new(path,flag=0):
 
     adj = sp.csr_matrix(sp.block_diag(A))
 
-    labels = target
+    y = np.array(target)
 
     print("defined labels")
 
-    y = labels
     feats = sp.coo_matrix(np.array(features)).tolil()
 
     #TODO, decide how to handle this
@@ -291,7 +290,7 @@ def preprocess_adj(adj):
     return sparse_to_tuple(adj_normalized)
 
 
-def construct_feed_dict(target_mean, target_stdev, features, support, labels, labels_mask, molecule_partitions, num_molecules ,placeholders):
+def construct_feed_dict(features, support, labels, labels_mask, molecule_partitions, num_molecules ,placeholders):
     """Construct feed dictionary."""
     feed_dict = dict()
     feed_dict.update({placeholders['labels']: labels})
@@ -301,8 +300,6 @@ def construct_feed_dict(target_mean, target_stdev, features, support, labels, la
     feed_dict.update({placeholders['num_features_nonzero']: features[1].shape})
     feed_dict.update({placeholders['molecule_partitions']:molecule_partitions})
     feed_dict.update({placeholders['num_molecules']:num_molecules})
-    feed_dict.update({placeholders['target_mean']:target_mean})
-    feed_dict.update({placeholders['target_stdev']:target_stdev})
 
     return feed_dict
 
