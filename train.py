@@ -13,19 +13,19 @@ import os
 #usage
 #python train.py --output-name my_new_model_name --input-name my_restored_model_name
 
-parser = argparse.ArgumentParser(description='provide arguments for DDPG agent')
+parser = argparse.ArgumentParser(description='provide arguments for model builder')
 
 # run parameters
 parser.add_argument('--random-seed', help='random seed for repeatability', default=123)
-parser.add_argument('--data-path', help='random seed for repeatability', default='../batches/batch0/')
-parser.add_argument('--model-dir', help='directory for storing saved models', default='models/')
+parser.add_argument('--data-path', help='data path', default='../batches/batch0/')
+parser.add_argument('--dir-model', help='directory for storing saved models', default='models/')
 parser.add_argument('--output-name', help='name of the saved model', default='unnamed')
 parser.add_argument('--input-name', help='name of the saved model', default=None)
 
 args = vars(parser.parse_args())
 
-if not os.path.exists(args['model_dir']):
-    os.makedirs(args['model_dir'])
+if not os.path.exists(args['dir_model']):
+    os.makedirs(args['dir_model'])
 
 # Set random seed
 seed = args['random_seed']
@@ -127,7 +127,7 @@ summary_writer = tf.summary.FileWriter('../tensorboard/',sess.graph)
 sess.run(tf.global_variables_initializer())
 
 if args['input_name'] is not None:
-    saver.restore(sess,args['model_dir']+args['input_name']+'/'+args['input_name'])
+    saver.restore(sess,args['dir_model']+args['input_name']+'/'+args['input_name'])
 
 #normalize targets in model
 [m,s]=sess.run([model.get_mean,model.get_std], feed_dict={placeholders['labels']: y_train, placeholders['labels_mask']: train_mask})
@@ -196,7 +196,7 @@ print("Optimization Finished!")
 plswork = sess.run(model.vars,feed_dict=feed_dict)
 
 
-saver.save(sess,args['model_dir']+args['output_name']+'/'+args['output_name'])
+saver.save(sess,args['dir_model']+args['output_name']+'/'+args['output_name'])
 
 
 # Testing
