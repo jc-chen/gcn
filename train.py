@@ -10,41 +10,6 @@ from gcn.models import JCNN
 import argparse
 import os
 
-#usage
-#python train.py --output-name my_new_model_name --input-name my_restored_model_name
-
-parser = argparse.ArgumentParser(description='provide arguments for model builder')
-
-# run parameters
-parser.add_argument('--random-seed', help='random seed for repeatability', default=123)
-parser.add_argument('--data-path', help='data path', default='../batches/batch0/')
-parser.add_argument('--dir-model', help='directory for storing saved models', default='models/')
-parser.add_argument('--output-name', help='name of the saved model', default='unnamed')
-parser.add_argument('--input-name', help='name of the saved model', default=None)
-
-args = vars(parser.parse_known_args())
-
-if not os.path.exists(args['dir_model']):
-    os.makedirs(args['dir_model'])
-
-# Set random seed
-seed = args['random_seed']
-np.random.seed(seed)
-tf.set_random_seed(seed)
-
-# Load data
-load_previous = 1
-#########[target_mean,target_stdev,adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(data_path,load_previous)
-pklpath ='tester/'
-data_path = '../tem_1000/'# args['data_path']
-
-[adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(data_path,pklpath,load_previous)
-#[adj_new,features_new,y_new,molecule_partitions_new,num_molecules_new]=load_data_new(data_path_new)
-
-#support_new = [preprocess_adj(adj_new)]
-#features_new = preprocess_features(features_new)
-
-print("Finished loading data!")
 
 # Settings
 flags = tf.app.flags
@@ -70,6 +35,51 @@ flags.DEFINE_float('dropout', 0.2, 'Dropout rate (1 - keep probability).')
 flags.DEFINE_float('weight_decay', 5e-4, 'Weight for L2 loss on embedding matrix.')
 flags.DEFINE_integer('early_stopping', 100, 'Tolerance for early stopping (# of epochs).')
 flags.DEFINE_integer('max_degree', 3, 'Maximum Chebyshev polynomial degree.')
+
+
+
+#usage
+#python train.py --output-name my_new_model_name --input-name my_restored_model_name
+
+parser = argparse.ArgumentParser(description='provide arguments for model builder')
+
+# run parameters
+parser.add_argument('--random-seed', help='random seed for repeatability', default=123)
+parser.add_argument('--data-path', help='data path', default='../batches/batch0/')
+parser.add_argument('--dir-model', help='directory for storing saved models', default='models/')
+parser.add_argument('--output-name', help='name of the saved model', default='unnamed')
+parser.add_argument('--input-name', help='name of the saved model', default=None)
+
+args = vars(parser.parse_args())
+
+if not os.path.exists(args['dir_model']):
+    os.makedirs(args['dir_model'])
+
+# Set random seed
+seed = args['random_seed']
+np.random.seed(seed)
+tf.set_random_seed(seed)
+
+# Load data
+load_previous = 0
+#########[target_mean,target_stdev,adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(data_path,load_previous)
+for i in range(2):
+    batchno = 'batch' + str(i)
+    pklpath = batchno
+data_path = '../smallbatch/' + batchno #'../batches/batch0'# args['data_path']
+
+[adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(data_path,pklpath,load_previous)
+#[adj_new,features_new,y_new,molecule_partitions_new,num_molecules_new]=load_data_new(data_path_new)
+
+#support_new = [preprocess_adj(adj_new)]
+#features_new = preprocess_features(features_new)
+
+print("Finished loading data!")
+
+
+
+exit()
+
 
 # Some preprocessing
 features = preprocess_features(features)
