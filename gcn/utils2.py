@@ -127,7 +127,7 @@ def add_sample(url,features,target,A,sizes,num_molecules,elements_info):
     except Exception as e:
         #Write exception to file
         print(str(e))
-        with open("analysis/problem_files.txt","w") as file:
+        with open("analysis/problem_files.txt","a+") as file:
             file.write(str(num_molecules)+" :  "+str(url)+ "   " + str(e) + "\n")
         return features, target, A, sizes, num_molecules
 
@@ -166,6 +166,14 @@ def load_data3(path,flag=0):
     idx_val = range(int(num_molecules*2/3),int(num_molecules*5/6))
     idx_test = range(int(num_molecules*5/6),num_molecules)
 
+
+
+    tar = np.array(target)
+    target_mean = np.mean(target,axis=0)
+    target_std = np.std(target,axis=0)
+    print(target_mean)
+    print("HEEEEEEEEWWO")
+    print(target_std)
 
     adj = sp.csr_matrix(sp.block_diag(A))
     labels = np.array(target)
@@ -288,7 +296,7 @@ def preprocess_adj(adj):
     return sparse_to_tuple(adj_normalized)
 
 
-def construct_feed_dict(target_mean, target_stdev, features, support, labels, labels_mask, molecule_partitions, num_molecules ,placeholders):
+def construct_feed_dict(features, support, labels, labels_mask, molecule_partitions, num_molecules ,placeholders):
     """Construct feed dictionary."""
     feed_dict = dict()
     feed_dict.update({placeholders['labels']: labels})
@@ -298,8 +306,6 @@ def construct_feed_dict(target_mean, target_stdev, features, support, labels, la
     feed_dict.update({placeholders['num_features_nonzero']: features[1].shape})
     feed_dict.update({placeholders['molecule_partitions']:molecule_partitions})
     feed_dict.update({placeholders['num_molecules']:num_molecules})
-    feed_dict.update({placeholders['target_mean']:target_mean})
-    feed_dict.update({placeholders['target_stdev']:target_stdev})
 
     return feed_dict
 

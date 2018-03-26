@@ -16,7 +16,7 @@ tf.set_random_seed(seed)
 # Load data
 load_previous = 0
 #########[target_mean,target_stdev,adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(data_path,load_previous)
-data_path = '../tem_1000/'
+data_path = '../tem_1000/' #'../batches/batch0/'
 
 [adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(data_path,load_previous)
 # [adj_new,features_new,y_new,molecule_partitions_new,num_molecules_new]=load_data_new(data_path_new)
@@ -76,6 +76,7 @@ model = model_func(placeholders, input_dim=features[2][1], logging=True)
 
 
 # Initialize session
+saver = tf.train.Saver()
 sess = tf.Session()
 
 # Tensorboard stuff
@@ -97,7 +98,7 @@ sess.run(tf.global_variables_initializer())
 #normalize targets in model
 [m,s]=sess.run([model.get_mean,model.get_std], feed_dict={placeholders['labels']: y_train, placeholders['labels_mask']: train_mask})
 
-
+cost_val = []
 #summary_writer = tf.train.SummaryWriter('/tmp/logs', sess.graph_def)
 
 # Train model
@@ -121,21 +122,23 @@ for epoch in range(FLAGS.epochs):
     cost_val.append(cost)
 
     if (epoch == 50):
-        FLAGS.learning_rate = 1.0
+        FLAGS.learning_rate = 2.0
         print("Changing learning rate to: ", FLAGS.learning_rate)
-    if (epoch == 100):
+    if (epoch == 120):
+        FLAGS.learning_rate = 1.0
+    if (epoch == 1000):
         FLAGS.learning_rate = 0.5
         print("Changing learning rate to: ", FLAGS.learning_rate)
-    if (epoch == 200):
+    if (epoch == 1200):
         FLAGS.learning_rate = 0.1
         print("Changing learning rate to: ", FLAGS.learning_rate)
-    if (epoch == 300):
+    if (epoch == 1200):
         FLAGS.learning_rate = 0.05
         print("Changing learning rate to: ", FLAGS.learning_rate)
-    if (epoch == 500):
+    if (epoch == 1500):
         FLAGS.learning_rate = 0.01
         print("Changing learning rate to: ", FLAGS.learning_rate)
-    if (epoch == 2000):
+    if (epoch == 3000):
         FLAGS.learning_rate = 0.001
         print("Changing learning rate to: ", FLAGS.learning_rate)
 
@@ -156,6 +159,9 @@ for epoch in range(FLAGS.epochs):
 
 
 print("Optimization Finished!")
+
+
+saver.save(sess,'./trained-model')
 
 # Testing
 test_cost, test_acc, test_mae, test_duration = evaluate(features, support, y_test, test_mask, molecule_partitions, num_molecules, placeholders)
