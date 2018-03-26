@@ -7,16 +7,35 @@ import tensorflow as tf
 from gcn.utils2 import *
 from gcn.models import JCNN
 
+import argparse
+import os
+
+#usage
+#python train.py --output-name my_new_model_name --input-name my_restored_model_name
+
+parser = argparse.ArgumentParser(description='provide arguments for DDPG agent')
+
+# run parameters
+parser.add_argument('--random-seed', help='random seed for repeatability', default=123)
+parser.add_argument('--data-path', help='random seed for repeatability', default='../batches/batch0/')
+parser.add_argument('--model-dir', help='directory for storing saved models', default='models/')
+parser.add_argument('--output-name', help='name of the saved model', default='unnamed')
+parser.add_argument('--input-name', help='name of the saved model', default=None)
+
+args = vars(parser.parse_args())
+
+if not os.path.exists(args['model_dir']):
+    os.makedirs(args['model_dir'])
 
 # Set random seed
-seed = 123
+seed = args['random_seed']
 np.random.seed(seed)
 tf.set_random_seed(seed)
 
 # Load data
 load_previous = 0
 #########[target_mean,target_stdev,adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(data_path,load_previous)
-data_path = '../batches/batch0/'
+data_path = args['data_path']
 
 [adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(data_path,load_previous)
 #[adj_new,features_new,y_new,molecule_partitions_new,num_molecules_new]=load_data_new(data_path_new)
@@ -32,7 +51,7 @@ FLAGS = flags.FLAGS
 flags.DEFINE_string('dataset', 'cora', 'Dataset string.')  # 'cora', 'citeseer', 'pubmed'
 flags.DEFINE_string('model', 'jcnn', 'Model string.')  # 'gcn', 'gcn_cheby', 'dense'
 flags.DEFINE_float('learning_rate', 3.0, 'Initial learning rate.')
-flags.DEFINE_integer('epochs', 5000, 'Number of epochs to train.')
+flags.DEFINE_integer('epochs', 1000, 'Number of epochs to train.')
 flags.DEFINE_integer('hidden1', 36, 'Number of units in hidden layer 1.')
 flags.DEFINE_integer('hidden2', 30, 'Number of units in hidden layer 2.')
 flags.DEFINE_integer('hidden3', 34, 'Number of units in hidden layer 3.')
@@ -107,6 +126,9 @@ summary_writer = tf.summary.FileWriter('../tensorboard/',sess.graph)
 # Init variables
 sess.run(tf.global_variables_initializer())
 
+if args['input_name'] is not None:
+    saver.restore(sess,args['model_dir']+args['input_name']+'/'+args['input_name'])
+
 #normalize targets in model
 [m,s]=sess.run([model.get_mean,model.get_std], feed_dict={placeholders['labels']: y_train, placeholders['labels_mask']: train_mask})
 
@@ -174,7 +196,7 @@ print("Optimization Finished!")
 plswork = sess.run(model.vars,feed_dict=feed_dict)
 
 
-saver.save(sess,'./trained-model')
+saver.save(sess,args['model_dir']+args['output_name']+'/'+args['output_name'])
 
 
 # Testing
