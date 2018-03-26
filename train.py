@@ -63,10 +63,8 @@ tf.set_random_seed(seed)
 # Load data
 load_previous = 0
 #########[target_mean,target_stdev,adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(data_path,load_previous)
-for i in range(2):
-    batchno = 'batch' + str(i)
-    pklpath = batchno
-data_path = '../smallbatch/' + batchno #'../batches/batch0'# args['data_path']
+pklpath ='b0/'
+data_path = '../tem_1000/'# args['data_path']
 
 [adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(data_path,pklpath,load_previous)
 #[adj_new,features_new,y_new,molecule_partitions_new,num_molecules_new]=load_data_new(data_path_new)
@@ -76,9 +74,6 @@ data_path = '../smallbatch/' + batchno #'../batches/batch0'# args['data_path']
 
 print("Finished loading data!")
 
-
-
-exit()
 
 
 # Some preprocessing
