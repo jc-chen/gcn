@@ -35,9 +35,10 @@ tf.set_random_seed(seed)
 # Load data
 load_previous = 0
 #########[target_mean,target_stdev,adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(data_path,load_previous)
+pklpath ='batch0/'
 data_path = args['data_path']
 
-[adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(data_path,load_previous)
+[adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(data_path,pklpath,load_previous)
 #[adj_new,features_new,y_new,molecule_partitions_new,num_molecules_new]=load_data_new(data_path_new)
 
 #support_new = [preprocess_adj(adj_new)]

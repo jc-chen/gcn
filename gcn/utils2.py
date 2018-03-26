@@ -31,7 +31,7 @@ def get_atomic_features(n):
 
 def pickle_file(path, *args):
     for arg in args:
-        file_name = './loaded_data/path/' + str(arg[0]) + '.txt'
+        file_name = './loaded_data/' + str(path) + str(arg[0]) + '.txt'
         with open(file_name,'wb') as file:
             pkl.dump(arg[1],file,protocol=2)
     return 
@@ -41,7 +41,7 @@ def load_pickled(path, *args):
 
     for arg in args:
         print("Writing"+str(arg)+".txt now")
-        file_name = './loaded_data/path/' + str(arg) + '.txt'
+        file_name = './loaded_data/' + str(path) + str(arg) + '.txt'
         with open(file_name,'rb') as file:
             a += [pkl.load(file)]
     return a
