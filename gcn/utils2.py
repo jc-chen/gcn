@@ -40,7 +40,7 @@ def load_pickled(path, *args):
     a=[]
 
     for arg in args:
-        print("Writing"+str(arg)+".txt now")
+        print("Loading "+str(arg)+".txt now")
         file_name = './loaded_data/' + str(path) + str(arg) + '.txt'
         with open(file_name,'rb') as file:
             a += [pkl.load(file)]
