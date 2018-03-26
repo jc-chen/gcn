@@ -163,11 +163,7 @@ def load_data3(path,flag=0):
     #n = molecule_partitions[-1]+1 #total sum of all nodes
 
     adj = sp.csr_matrix(sp.block_diag(A))
-
-    target = np.array(target)
-    target_mean = np.mean(target,axis=0)
-    target_stdev = np.std(target,axis=0)
-    labels = (target-target_mean)/target_stdev
+    labels = np.array(target)
 
     print("defined labels")
 
@@ -189,18 +185,65 @@ def load_data3(path,flag=0):
     y_test[test_mask] = labels[test_mask]
     y_val[val_mask] = labels[val_mask]
 
+    #FOR DEBUGGING PURPOSES
+    print('PREVIOUS MEAN:',np.mean(labels[train_mask],axis=0))
+    print('PREVIOUS STD:',np.std(labels[train_mask],axis=0))
+
     feats = sp.coo_matrix(np.array(features)).tolil()
 
     print("About to write to file")
-    write_file(('target_mean', target_mean), ('target_stdev', target_stdev), ('adj', adj),
+    write_file(('adj', adj),
         ('features', feats), ('y_train', y_train), ('y_val', y_val), ('y_test', y_test), 
         ('train_mask', train_mask), ('val_mask', val_mask), ('test_mask', test_mask),
         ('molecule_partitions',molecule_partitions),('num_molecules',num_molecules))
 
     print("Finished writing to file")
 
-    return [target_mean, target_stdev, adj, feats, y_train, y_val, y_test, train_mask, 
-        val_mask, test_mask, molecule_partitions, num_molecules]
+    return [adj, feats, y_train, y_val, y_test, train_mask, val_mask, test_mask, molecule_partitions, num_molecules]
+
+def load_data_new(path,flag=0):
+    """Load data."""
+
+    features = [] #features of each node
+    A=[] #list of graph adjacency matrices; each entry is the adjacency matrix for one molecule
+    sizes = [] #list of sizes of molecules; each entry is the size of a molecule
+    num_molecules = 0
+    target = [] #list of "y's" - each entry is an "answer" for a molecule
+
+
+    # Info for standardizing data
+    elements = np.array([1,6,7,8,9])
+    elements_mean = np.mean(elements)
+    elements_stdev = np.std(elements)
+    elements_all = [elements, elements_mean, elements_stdev]
+
+    for file in os.listdir(path):
+        features, target, A, sizes, num_molecules = add_sample(path+file,features,target,A,sizes,num_molecules,elements_all)
+
+    print("Total molecules",num_molecules)
+
+    molecule_partitions=np.cumsum(sizes) #to get partition positions
+    #n = molecule_partitions[-1]+1 #total sum of all nodes
+
+    adj = sp.csr_matrix(sp.block_diag(A))
+
+    labels = target
+
+    print("defined labels")
+
+    y = labels
+    feats = sp.coo_matrix(np.array(features)).tolil()
+
+    #TODO, decide how to handle this
+    # print("About to write to file")
+    # write_file(('target_mean', target_mean), ('target_stdev', target_stdev), ('adj', adj),
+    #     ('features', feats), ('y_train', y_train), ('y_val', y_val), ('y_test', y_test), 
+    #     ('train_mask', train_mask), ('val_mask', val_mask), ('test_mask', test_mask),
+    #     ('molecule_partitions',molecule_partitions),('num_molecules',num_molecules))
+
+    print("Finished writing to file")
+
+    return [adj, feats, y, molecule_partitions, num_molecules]
 
 
 def sparse_to_tuple(sparse_mx):
