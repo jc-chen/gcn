@@ -99,9 +99,8 @@ sess = tf.Session()
 
 sess.run(tf.global_variables_initializer())
 
-saver = tf.train.import_meta_graph('./trained-model.meta')
-saver.restore(sess,tf.train.latest_checkpoint('./'))
-
+nsaver = tf.train.Saver()
+nsaver.restore(sess,'./trained-model')
 
 test_cost, test_acc, test_mae, test_duration = evaluate(features, support, y_test, molecule_partitions, num_molecules, placeholders,mask=test_mask)
 print("Test set results:", "cost=", "{:.5f}".format(test_cost),
