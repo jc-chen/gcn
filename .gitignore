@@ -1,4 +1,5 @@
 tensorboard/
 *.pyc
-analysis/*
-__pycache__/*
+analysis/
+__pycache__/
+loaded_data/

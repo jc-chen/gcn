@@ -27,6 +27,9 @@ class Model(object):
         self.inputs = None
         self.outputs = None
 
+        self.normalized_targets = None
+        self.target_masks = None
+
         self.molecule_partitions = None
         self.num_molecules = None
 
@@ -36,6 +39,9 @@ class Model(object):
         self.optimizer = None
         self.opt_op = None
 
+        self.target_mean = None
+        self.target_stdev = None
+
     def _build(self):
         raise NotImplementedError
 
@@ -43,6 +49,16 @@ class Model(object):
         """ Wrapper for _build() """
         with tf.variable_scope(self.name):
             self._build()
+
+
+        self.target_mean = tf.Variable(tf.zeros([self.placeholders['labels'].shape[1].value]), dtype=tf.float32)
+        self.target_stdev = tf.Variable(tf.zeros([self.placeholders['labels'].shape[1].value]), dtype=tf.float32)
+
+        #Setting for easy access
+        self.target_mask = self.placeholders['labels_mask']
+
+        #For normalizing data
+        self.normalized_targets = (self.placeholders['labels']-self.target_mean)/self.target_stdev
 
         # Build sequential layer model
         self.activations.append(self.inputs)
@@ -54,16 +70,40 @@ class Model(object):
         # Store model variables for easy access
         variables = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self.name)
         self.vars = {var.name: var for var in variables}
+        
+        #For getting normalization parameters from training data
+        [norm_mean,norm_std]=self.get_normalize_parameters()
+        self.get_normalize_op = tf.group(tf.assign(self.target_mean,norm_mean),tf.assign(self.target_stdev,norm_std))
+        self.get_mean = tf.assign(self.target_mean,norm_mean)
+        self.get_std = tf.assign(self.target_stdev,norm_std)
 
         # Build metrics
         self._loss()
         self._accuracy()
         self._mae()
+
+        #Optimization op
         self.opt_op = self.optimizer.minimize(self.loss)
 
     def predict(self):
         pass
 
+    def get_normalize_parameters(self):
+        labels = self.placeholders['labels']
+        mask = tf.cast(self.placeholders['labels_mask'], dtype=tf.float32)
+
+        num_items = tf.reduce_sum(mask)
+
+        #mask fixes
+        mask = tf.expand_dims(mask,-1)
+        mask = tf.tile(mask,[1,labels.shape[1].value])
+
+        mean = tf.reduce_sum(labels*mask,axis=0)/num_items
+        
+        std = tf.sqrt(tf.reduce_sum(tf.square(labels-mean)*mask,axis=0)/(num_items-1))
+
+        return mean,std
+        
     def _loss(self):
         raise NotImplementedError
 
@@ -110,13 +150,13 @@ class MLP(Model):
             self.loss += FLAGS.weight_decay * tf.nn.l2_loss(var)
 
         # Cross entropy error
-        self.loss += masked_softmax_cross_entropy(self.outputs, self.placeholders['labels'],
-                                                  self.placeholders['labels_mask'])
+        self.loss += masked_softmax_cross_entropy(self.outputs, self.normalized_targets,
+                                                  self.target_mask)
         tf.summary.scalar('loss', self.loss)
 
     def _accuracy(self):
-        self.accuracy = masked_accuracy(self.outputs, self.placeholders['labels'],
-                                        self.placeholders['labels_mask'])
+        self.accuracy = masked_accuracy(self.outputs, self.normalized_targets,
+                                        self.target_mask)
 
     def _build(self):
         self.layers.append(Dense(input_dim=self.input_dim,
@@ -158,12 +198,12 @@ class GCN(Model):
             self.loss += FLAGS.weight_decay * tf.nn.l2_loss(var)
 
         # Cross entropy error
-        self.loss += masked_softmax_cross_entropy(self.outputs, self.placeholders['labels'],
-                                                  self.placeholders['labels_mask'])
+        self.loss += masked_softmax_cross_entropy(self.outputs, self.normalized_targets,
+                                                  self.target_mask)
 
     def _accuracy(self):
-        self.accuracy = masked_accuracy(self.outputs, self.placeholders['labels'],
-                                        self.placeholders['labels_mask'])
+        self.accuracy = masked_accuracy(self.outputs, self.normalized_targets,
+                                        self.target_mask)
 
     def _build(self):
 
@@ -194,8 +234,6 @@ class JCNN(Model):
         self.input_dim = input_dim
         # self.input_dim = self.inputs.get_shape().as_list()[1]  # To be supported in future Tensorflow versions
 
-
-
         # this should be molecule outputs now
         self.molecule_number_of_outputs = placeholders['labels'].get_shape().as_list()[1]
 
@@ -214,16 +252,15 @@ class JCNN(Model):
         #    self.loss += FLAGS.weight_decay * tf.nn.l2_loss(var)
 
         # L2 loss
-        self.loss += square_error(self.outputs, self.placeholders['labels'],
-                                    self.placeholders['labels_mask'])
+        self.loss += square_error(self.outputs, self.normalized_targets,self.target_mask)
 
     def _accuracy(self):
-        self.accuracy = masked_accuracy(self.outputs, self.placeholders['labels'],
-                                        self.placeholders['labels_mask'],self.placeholders['target_mean'],
-                                        self.placeholders['target_stdev'])
+        self.accuracy = masked_accuracy(self.outputs, self.normalized_targets,
+                                        self.target_mask,self.target_mean,
+                                        self.target_stdev)
     def _mae(self):
-        self.mae = mean_absolute_error(self.outputs, self.placeholders['labels'],
-                                    self.placeholders['labels_mask'])
+        self.mae = mean_absolute_error(self.outputs, self.normalized_targets,
+                                    self.target_mask)
 
     def _build(self):
 

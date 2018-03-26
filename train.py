@@ -15,8 +15,11 @@ tf.set_random_seed(seed)
 
 # Load data
 load_previous = 0
+#########[target_mean,target_stdev,adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(data_path,load_previous)
 data_path = '../tem_1000/'
-[target_mean,target_stdev,adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(data_path,load_previous)
+
+[adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(data_path,load_previous)
+# [adj_new,features_new,y_new,molecule_partitions_new,num_molecules_new]=load_data_new(data_path_new)
 
 print("Finished loading data!")
 
@@ -75,10 +78,8 @@ placeholders = {
     'labels_mask': tf.placeholder(tf.int32, name='the_mask_of_labels'),
     'dropout': tf.placeholder_with_default(0., shape=(), name='dropout_meow'),
     'num_features_nonzero': tf.placeholder(tf.int32),  # helper variable for sparse dropout
-    'molecule_partitions': tf.placeholder(tf.int32,shape=(molecule_partitions.shape)),
-    'num_molecules': tf.placeholder(tf.int32,shape=()),
-    'target_mean': tf.placeholder(tf.float32),
-    'target_stdev': tf.placeholder(tf.float32)
+    'molecule_partitions': tf.placeholder(tf.int32),
+    'num_molecules': tf.placeholder(tf.int32,shape=())
 }
 
 # Create model
@@ -95,9 +96,9 @@ summary_writer = tf.summary.FileWriter('../tensorboard/',sess.graph)
 
 
 # Define model evaluation function
-def evaluate(target_mean, target_stdev, features, support, labels, mask, molecule_partitions, num_molecules, placeholders):
+def evaluate(features, support, labels, mask, molecule_partitions, num_molecules, placeholders):
     t_test = time.time()
-    feed_dict_val = construct_feed_dict(target_mean, target_stdev, features, support, labels, mask, molecule_partitions, num_molecules, placeholders)
+    feed_dict_val = construct_feed_dict(features, support, labels, mask, molecule_partitions, num_molecules, placeholders)
     outs_val = sess.run([model.loss, model.accuracy,model.mae], feed_dict=feed_dict_val)
     return outs_val[0], outs_val[1], outs_val[2], (time.time() - t_test)
 
@@ -105,10 +106,13 @@ def evaluate(target_mean, target_stdev, features, support, labels, mask, molecul
 # Init variables
 sess.run(tf.global_variables_initializer())
 
-cost_val = []
+#normalize targets in model
+[m,s]=sess.run([model.get_mean,model.get_std], feed_dict={placeholders['labels']: y_train, placeholders['labels_mask']: train_mask})
 
+print('NEW MEAN:',m)
+print('NEW STD:',s)
+exit()
 #summary_writer = tf.train.SummaryWriter('/tmp/logs', sess.graph_def)
-
 
 # Train model
 tf.summary.scalar('second', tf.Variable(5))
@@ -117,7 +121,7 @@ for epoch in range(FLAGS.epochs):
 
     t = time.time()
     # Construct feed dictionary
-    feed_dict = construct_feed_dict(target_mean, target_stdev, features, support, y_train, train_mask, molecule_partitions, num_molecules, placeholders)
+    feed_dict = construct_feed_dict(features, support, y_train, train_mask, molecule_partitions, num_molecules, placeholders)
     feed_dict.update({placeholders['dropout']: FLAGS.dropout})
 
     # Training step
@@ -127,7 +131,7 @@ for epoch in range(FLAGS.epochs):
     #summary_writer.flush()
 
     # Validation
-    cost, acc, mae, duration = evaluate(target_mean, target_stdev, features, support, y_val, val_mask, molecule_partitions, num_molecules, placeholders)
+    cost, acc, mae, duration = evaluate(features, support, y_val, val_mask, molecule_partitions, num_molecules, placeholders)
     cost_val.append(cost)
 
     if (epoch == 50):
@@ -168,10 +172,16 @@ for epoch in range(FLAGS.epochs):
 print("Optimization Finished!")
 
 # Testing
-test_cost, test_acc, test_mae, test_duration = evaluate(target_mean, target_stdev, features, support, y_test, test_mask, molecule_partitions, num_molecules, placeholders)
+test_cost, test_acc, test_mae, test_duration = evaluate(features, support, y_test, test_mask, molecule_partitions, num_molecules, placeholders)
 print("Test set results:", "cost=", "{:.5f}".format(test_cost),
       "accuracy= ", str(test_acc), "mae= ", str(test_mae), "time=", "{:.5f}".format(test_duration))
 
+
+
+#New testing 
+# test_cost, test_acc, test_mae, test_duration = evaluate(features, support, y_test, test_mask, molecule_partitions, num_molecules, placeholders)
+# print("Test set results:", "cost=", "{:.5f}".format(test_cost),
+#       "accuracy= ", str(test_acc), "mae= ", str(test_mae), "time=", "{:.5f}".format(test_duration))
 
 Costs_file = open("analysis/costs.txt","a+")
 Costs_file.write("mu\n")
