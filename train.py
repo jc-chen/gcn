@@ -94,6 +94,27 @@ def evaluate(features, support, labels, molecule_partitions, num_molecules, plac
 
 
 
+
+sess = tf.Session()
+
+sess.run(tf.global_variables_initializer())
+
+nsaver = tf.train.import_meta_graph('./trained-model.meta')
+nsaver.restore(sess,tf.train.latest_checkpoint('./'))
+
+
+test_cost, test_acc, test_mae, test_duration = evaluate(features, support, y_test, molecule_partitions, num_molecules, placeholders,mask=test_mask)
+print("Test set results:", "cost=", "{:.5f}".format(test_cost),
+      "accuracy= ", str(test_acc), "mae= ", str(test_mae), "time=", "{:.5f}".format(test_duration))
+
+
+
+
+exit()
+
+
+
+
 # Initialize session
 saver = tf.train.Saver()
 sess = tf.Session()
@@ -172,7 +193,6 @@ print("Optimization Finished!")
 
 plswork = sess.run(model.vars,feed_dict=feed_dict)
 
-print(plswork)
 
 saver.save(sess,'./trained-model')
 
