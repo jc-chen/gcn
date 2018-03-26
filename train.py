@@ -22,7 +22,7 @@ parser.add_argument('--dir-model', help='directory for storing saved models', de
 parser.add_argument('--output-name', help='name of the saved model', default='unnamed')
 parser.add_argument('--input-name', help='name of the saved model', default=None)
 
-args = vars(parser.parse_args())
+args = vars(parser.parse_known_args())
 
 if not os.path.exists(args['dir_model']):
     os.makedirs(args['dir_model'])
@@ -33,10 +33,10 @@ np.random.seed(seed)
 tf.set_random_seed(seed)
 
 # Load data
-load_previous = 0
+load_previous = 1
 #########[target_mean,target_stdev,adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(data_path,load_previous)
-pklpath ='batch0/'
-data_path = args['data_path']
+pklpath ='tester/'
+data_path = '../tem_1000/'# args['data_path']
 
 [adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(data_path,pklpath,load_previous)
 #[adj_new,features_new,y_new,molecule_partitions_new,num_molecules_new]=load_data_new(data_path_new)
