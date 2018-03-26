@@ -29,19 +29,19 @@ def get_atomic_features(n):
     '''n is the atomic number'''
     return
 
-def pickle_file(*args):
+def pickle_file(path, *args):
     for arg in args:
-        file_name = './loaded_data/' + str(arg[0]) + '.txt'
+        file_name = './loaded_data/path/' + str(arg[0]) + '.txt'
         with open(file_name,'wb') as file:
             pkl.dump(arg[1],file,protocol=2)
     return 
 
-def load_pickled(*args):
+def load_pickled(path, *args):
     a=[]
 
     for arg in args:
         print("Writing"+str(arg)+".txt now")
-        file_name = './loaded_data/' + str(arg) + '.txt'
+        file_name = './loaded_data/path/' + str(arg) + '.txt'
         with open(file_name,'rb') as file:
             a += [pkl.load(file)]
     return a
@@ -133,11 +133,11 @@ def add_sample(url,features,target,A,sizes,num_molecules,elements_info):
 
 
 
-def load_data3(path,flag=0):
+def load_data3(data_path, pklpath, flag=0):
     """Load data."""
 
     if (flag==1):
-        return load_pickled('adj','features','y_train',
+        return load_pickled(pklpath,'adj','features','y_train',
             'y_val', 'y_test','train_mask','val_mask','test_mask','molecule_partitions','num_molecules')
 
     features = [] #features of each node
@@ -153,8 +153,8 @@ def load_data3(path,flag=0):
     elements_stdev = np.std(elements)
     elements_all = [elements, elements_mean, elements_stdev]
 
-    for file in os.listdir(path):
-        features, target, A, sizes, num_molecules = add_sample(path+file,features,target,A,sizes,num_molecules,elements_all)
+    for file in os.listdir(data_path):
+        features, target, A, sizes, num_molecules = add_sample(data_path+file,features,target,A,sizes,num_molecules,elements_all)
 
     print("Total molecules",num_molecules)
 
@@ -167,18 +167,13 @@ def load_data3(path,flag=0):
     idx_test = range(int(num_molecules*5/6),num_molecules)
 
 
-
     tar = np.array(target)
     target_mean = np.mean(target,axis=0)
     target_std = np.std(target,axis=0)
-    print(target_mean)
-    print("HEEEEEEEEWWO")
-    print(target_std)
 
     adj = sp.csr_matrix(sp.block_diag(A))
     labels = np.array(target)
 
-    print("defined labels")
 
     #randomized_order = range(num_molecules)
     #shuffle(range(num_molecules))
@@ -198,7 +193,7 @@ def load_data3(path,flag=0):
 
     print("About to write to file")
 
-    pickle_file(('adj', adj), ('features', feats), ('y_train', y_train), ('y_val', y_val), ('y_test', y_test), 
+    pickle_file(pklpath,('adj', adj), ('features', feats), ('y_train', y_train), ('y_val', y_val), ('y_test', y_test), 
         ('train_mask', train_mask), ('val_mask', val_mask), ('test_mask', test_mask),
         ('molecule_partitions',molecule_partitions),('num_molecules',num_molecules))
 

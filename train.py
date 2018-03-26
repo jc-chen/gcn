@@ -14,9 +14,9 @@ np.random.seed(seed)
 tf.set_random_seed(seed)
 
 # Load data
-load_previous = 1
+load_previous = 0
 #########[target_mean,target_stdev,adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(data_path,load_previous)
-data_path = '../tem_1000/' #'../batches/batch0/'
+data_path = '../batches/batch0/'
 
 [adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(data_path,load_previous)
 #[adj_new,features_new,y_new,molecule_partitions_new,num_molecules_new]=load_data_new(data_path_new)
@@ -95,25 +95,6 @@ def evaluate(features, support, labels, molecule_partitions, num_molecules, plac
 
 
 
-sess = tf.Session()
-
-sess.run(tf.global_variables_initializer())
-
-nsaver = tf.train.Saver()
-nsaver.restore(sess,'./trained-model')
-
-test_cost, test_acc, test_mae, test_duration = evaluate(features, support, y_test, molecule_partitions, num_molecules, placeholders,mask=test_mask)
-print("Test set results:", "cost=", "{:.5f}".format(test_cost),
-      "accuracy= ", str(test_acc), "mae= ", str(test_mae), "time=", "{:.5f}".format(test_duration))
-
-
-
-
-exit()
-
-
-
-
 # Initialize session
 saver = tf.train.Saver()
 sess = tf.Session()
@@ -155,12 +136,12 @@ for epoch in range(FLAGS.epochs):
     if (epoch == 50):
         FLAGS.learning_rate = 2.0
         print("Changing learning rate to: ", FLAGS.learning_rate)
-    if (epoch == 120):
-        FLAGS.learning_rate = 1.0
     if (epoch == 300):
+        FLAGS.learning_rate = 1.0
+    if (epoch == 800):
         FLAGS.learning_rate = 0.5
         print("Changing learning rate to: ", FLAGS.learning_rate)
-    if (epoch == 1200):
+    if (epoch == 1000):
         FLAGS.learning_rate = 0.1
         print("Changing learning rate to: ", FLAGS.learning_rate)
     if (epoch == 1200):
@@ -195,8 +176,6 @@ plswork = sess.run(model.vars,feed_dict=feed_dict)
 
 saver.save(sess,'./trained-model')
 
-
-exit()
 
 # Testing
 test_cost, test_acc, test_mae, test_duration = evaluate(features, support, y_test, molecule_partitions, num_molecules, placeholders,mask=test_mask)
