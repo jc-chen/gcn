@@ -42,6 +42,8 @@ class Model(object):
         self.target_mean = None
         self.target_stdev = None
 
+        self.print_me = None
+
     def _build(self):
         raise NotImplementedError
 

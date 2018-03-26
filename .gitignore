@@ -1,6 +1,7 @@
 tensorboard/
 *.pyc
 analysis/
+analysis/costs.txt
 __pycache__/
 loaded_data/
 trained-model*
