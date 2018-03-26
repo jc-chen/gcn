@@ -184,8 +184,6 @@ class GCN(Model):
 
     def predict(self):
         return tf.nn.softmax(self.outputs)
-#TODO: change the softmax to a more suitable function
-
 
 
 class JCNN(Model):
@@ -278,4 +276,4 @@ class JCNN(Model):
                                     sparse_inputs=False,
                                     logging=self.logging))
     def predict(self):
-        return self.outputs #tf.nn.softmax(self.outputs)
+        return self.outputs

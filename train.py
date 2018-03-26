@@ -14,7 +14,7 @@ np.random.seed(seed)
 tf.set_random_seed(seed)
 
 # Load data
-load_previous = 1
+load_previous = 0
 data_path = '../tem_1000/'
 [target_mean,target_stdev,adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(data_path,load_previous)
 

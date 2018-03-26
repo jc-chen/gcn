@@ -29,14 +29,14 @@ def get_atomic_features(n):
     '''n is the atomic number'''
     return
 
-def write_file(*args):
+def pickle_file(*args):
     for arg in args:
         file_name = './loaded_data/' + str(arg[0]) + '.txt'
         with open(file_name,'wb') as file:
             pkl.dump(arg[1],file,protocol=2)
     return 
 
-def load_saved(*args):
+def load_pickled(*args):
     a=[]
 
     for arg in args:
@@ -125,9 +125,8 @@ def add_sample(url,features,target,A,sizes,num_molecules,elements_info):
         features+=tempfeatures
         return features, target, A, sizes, num_molecules
     except Exception as e:
-        #Write problem file name
+        #Write exception to file
         print(str(e))
-
         with open("analysis/problem_files.txt","w") as file:
             file.write(str(num_molecules)+" :  "+str(url)+ "   " + str(e) + "\n")
         return features, target, A, sizes, num_molecules
@@ -138,7 +137,7 @@ def load_data3(path,flag=0):
     """Load data."""
 
     if (flag==1):
-        return load_saved('target_mean','target_stdev','adj','features','y_train',
+        return load_pickled('target_mean','target_stdev','adj','features','y_train',
             'y_val', 'y_test','train_mask','val_mask','test_mask','molecule_partitions','num_molecules')
 
     features = [] #features of each node
@@ -160,7 +159,13 @@ def load_data3(path,flag=0):
     print("Total molecules",num_molecules)
 
     molecule_partitions=np.cumsum(sizes) #to get partition positions
-    #n = molecule_partitions[-1]+1 #total sum of all nodes
+
+
+    # Divide into train, validation, test sets
+    idx_train = range(int(num_molecules*2/3))
+    idx_val = range(int(num_molecules*2/3),int(num_molecules*5/6))
+    idx_test = range(int(num_molecules*5/6),num_molecules)
+
 
     adj = sp.csr_matrix(sp.block_diag(A))
 
@@ -174,25 +179,24 @@ def load_data3(path,flag=0):
     #randomized_order = range(num_molecules)
     #shuffle(range(num_molecules))
 
-    idx_train = range(int(num_molecules*2/3))
-    idx_val = range(int(num_molecules*2/3),int(num_molecules*5/6))
-    idx_test = range(int(num_molecules*5/6),num_molecules)
-
     train_mask = sample_mask(idx_train, labels.shape[0])
     val_mask = sample_mask(idx_val, labels.shape[0])
     test_mask = sample_mask(idx_test, labels.shape[0])
 
     y_train = np.zeros(labels.shape)
     y_val = np.zeros(labels.shape)
-    y_test = np.zeros(labels.shape)
+    #y_test = np.zeros(labels.shape)
     y_train[train_mask] = labels[train_mask]
-    y_test[test_mask] = labels[test_mask]
+    #y_test[test_mask] = labels[test_mask]
     y_val[val_mask] = labels[val_mask]
+
+    y_test = np.ones(labels.shape)
+    y_test = 1000000.0*y_test
 
     feats = sp.coo_matrix(np.array(features)).tolil()
 
     print("About to write to file")
-    write_file(('target_mean', target_mean), ('target_stdev', target_stdev), ('adj', adj),
+    pickle_file(('target_mean', target_mean), ('target_stdev', target_stdev), ('adj', adj),
         ('features', feats), ('y_train', y_train), ('y_val', y_val), ('y_test', y_test), 
         ('train_mask', train_mask), ('val_mask', val_mask), ('test_mask', test_mask),
         ('molecule_partitions',molecule_partitions),('num_molecules',num_molecules))
