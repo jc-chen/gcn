@@ -149,6 +149,7 @@ class JCNN(Model):
 
         self.optimizer = tf.train.AdamOptimizer(learning_rate=FLAGS.learning_rate)
 
+
         self.build()
 
     def _loss(self):
@@ -218,4 +219,4 @@ class JCNN(Model):
                                     sparse_inputs=False,
                                     logging=self.logging))
     def predict(self):
-        return self.outputs
+        return self.outputs*self.target_stdev+self.target_mean

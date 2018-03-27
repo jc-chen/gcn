@@ -17,7 +17,7 @@ FLAGS = flags.FLAGS
 flags.DEFINE_string('dataset', 'cora', 'Dataset string.')  # 'cora', 'citeseer', 'pubmed'
 flags.DEFINE_string('model', 'jcnn', 'Model string.')  # 'gcn', 'gcn_cheby', 'dense'
 flags.DEFINE_float('learning_rate', 3.0, 'Initial learning rate.')
-flags.DEFINE_integer('epochs', 1000, 'Number of epochs to train.')
+flags.DEFINE_integer('epochs', 5000, 'Number of epochs to train.')
 flags.DEFINE_integer('hidden1', 36, 'Number of units in hidden layer 1.')
 flags.DEFINE_integer('hidden2', 30, 'Number of units in hidden layer 2.')
 flags.DEFINE_integer('hidden3', 34, 'Number of units in hidden layer 3.')
@@ -63,8 +63,8 @@ tf.set_random_seed(seed)
 # Load data
 load_previous = 0
 #########[target_mean,target_stdev,adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(data_path,load_previous)
-pklpath ='b0/'
-data_path = '../tem_1000/'# args['data_path']
+pklpath ='ALL' #'1000/b1/'
+data_path = '../proc/' # + pklpath # args['data_path']
 
 [adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(data_path,pklpath,load_previous)
 #[adj_new,features_new,y_new,molecule_partitions_new,num_molecules_new]=load_data_new(data_path_new)
@@ -161,24 +161,24 @@ for epoch in range(FLAGS.epochs):
     cost, acc, mae, duration = evaluate(features, support, y_val, molecule_partitions, num_molecules, placeholders, mask=val_mask)
     cost_val.append(cost)
 
-    if (epoch == 50):
+    if (epoch == 30):
         FLAGS.learning_rate = 2.0
         print("Changing learning rate to: ", FLAGS.learning_rate)
-    if (epoch == 300):
+    if (epoch == 100):
         FLAGS.learning_rate = 1.0
-    if (epoch == 800):
+    if (epoch == 150):
         FLAGS.learning_rate = 0.5
         print("Changing learning rate to: ", FLAGS.learning_rate)
-    if (epoch == 1000):
+    if (epoch == 300):
         FLAGS.learning_rate = 0.1
         print("Changing learning rate to: ", FLAGS.learning_rate)
-    if (epoch == 1200):
+    if (epoch == 500):
         FLAGS.learning_rate = 0.05
         print("Changing learning rate to: ", FLAGS.learning_rate)
-    if (epoch == 1500):
+    if (epoch == 700):
         FLAGS.learning_rate = 0.01
         print("Changing learning rate to: ", FLAGS.learning_rate)
-    if (epoch == 3000):
+    if (epoch == 1000):
         FLAGS.learning_rate = 0.001
         print("Changing learning rate to: ", FLAGS.learning_rate)
 
@@ -202,7 +202,7 @@ print("Optimization Finished!")
 plswork = sess.run(model.vars,feed_dict=feed_dict)
 
 
-saver.save(sess,args['dir_model']+args['output_name']+'/'+args['output_name'])
+saver.save(sess,args['dir_model']+ pklpath + 'name')
 
 
 # Testing
@@ -210,14 +210,8 @@ test_cost, test_acc, test_mae, test_duration = evaluate(features, support, y_tes
 print("Test set results:", "cost=", "{:.5f}".format(test_cost),
       "accuracy= ", str(test_acc), "mae= ", str(test_mae), "time=", "{:.5f}".format(test_duration))
 
-#New testing 
-# test_cost, test_acc, test_mae, test_duration = evaluate(features_new, support_new, y_new, molecule_partitions_new, num_molecules_new, placeholders)
-# print("New test set results:", "cost=", "{:.5f}".format(test_cost),
-#       "accuracy= ", str(test_acc), "mae= ", str(test_mae), "time=", "{:.5f}".format(test_duration))
-
-
-Costs_file = open("analysis/costs.txt","a+")
-Costs_file.write("mu\n")
+Costs_file = open("analysis/train_size.txt","a+")
+Costs_file.write(pklpath + "\n")
 Costs_file.write("Epochs: " + str(epoch + 1) + "\ntrain_loss= " + str(outs[1]) + 
     "      val_loss= " + str(cost) + "\ntrain_acc= " + str(outs[2]) + "\nval_acc= " + 
     str(acc) + "\ntrain_mae= " + str(outs[5]))

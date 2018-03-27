@@ -63,6 +63,15 @@ def add_sample(url,features,target,A,sizes,num_molecules,elements_info):
         edges = mol.graph.edges;
         d = len(vertices) #the size of each molecule
 
+        # if (d==12):
+        #     if (list(vertices).count(1) == 6):
+        #         if (list(vertices).count(6) == 6):
+        #             print(url)
+        #             return features, target, A, sizes, num_molecules 
+
+        # else:
+        #     return features, target, A, sizes, num_molecules
+
         partial_charges=properties[22:(23+5*(d-1)):5]
 
         atomic_number_mean = elements_info[1]
@@ -81,7 +90,7 @@ def add_sample(url,features,target,A,sizes,num_molecules,elements_info):
         free_nrg = float(properties[16])
         heat_capacity = float(properties[17])
   
-  
+
         tempA = np.zeros((d,d)); #Adjacency matrix
         #Structure of the features matrix: (in a row)
         # atomic_no, H, C, N, O, F, #H, vdw radius, partial charge, acceptor, donor
@@ -162,9 +171,12 @@ def load_data3(data_path, pklpath, flag=0):
 
 
     # Divide into train, validation, test sets
-    idx_train = range(int(num_molecules*2/3))
-    idx_val = range(int(num_molecules*2/3),int(num_molecules*5/6))
-    idx_test = range(int(num_molecules*5/6),num_molecules)
+    randomized_order = range(num_molecules)
+    shuffle(randomized_order)
+
+    idx_train = randomized_order[0:int(num_molecules*2/3)]
+    idx_val = randomized_order[int(num_molecules*2/3):int(num_molecules*5/6)]
+    idx_test = randomized_order[int(num_molecules*5/6):]
 
 
     tar = np.array(target)
@@ -175,8 +187,6 @@ def load_data3(data_path, pklpath, flag=0):
     labels = np.array(target)
 
 
-    #randomized_order = range(num_molecules)
-    #shuffle(range(num_molecules))
 
     train_mask = sample_mask(idx_train, labels.shape[0])
     val_mask = sample_mask(idx_val, labels.shape[0])
@@ -218,6 +228,7 @@ def load_data_new(path,flag=0):
     elements_all = [elements, elements_mean, elements_stdev]
 
     for file in os.listdir(path):
+        print(str(file))
         features, target, A, sizes, num_molecules = add_sample(path+file,features,target,A,sizes,num_molecules,elements_all)
 
     print("Total molecules",num_molecules)
@@ -243,6 +254,36 @@ def load_data_new(path,flag=0):
     print("Finished writing to file")
 
     return [adj, feats, y, molecule_partitions, num_molecules]
+
+
+def load_data_test(data_path, flag=0):
+    """Load data."""
+    features = [] #features of each node
+    A=[] #list of graph adjacency matrices; each entry is the adjacency matrix for one molecule
+    sizes = [] #list of sizes of molecules; each entry is the size of a molecule
+    num_molecules = 0
+    target = [] #list of "y's" - each entry is an "answer" for a molecule
+
+
+    # Info for standardizing data
+    elements = np.array([1,6,7,8,9])
+    elements_mean = np.mean(elements)
+    elements_stdev = np.std(elements)
+    elements_all = [elements, elements_mean, elements_stdev]
+
+    for file in os.listdir(data_path):
+        features, target, A, sizes, num_molecules = add_sample(data_path+file,features,target,A,sizes,num_molecules,elements_all)
+
+    print("Total molecules",num_molecules)
+
+    molecule_partitions=np.cumsum(sizes) #to get partition positions
+
+    adj = sp.csr_matrix(sp.block_diag(A))
+    labels = np.array(target)
+
+    feats = sp.coo_matrix(np.array(features)).tolil()
+
+    return [adj, feats, labels, molecule_partitions, num_molecules]
 
 
 def sparse_to_tuple(sparse_mx):
