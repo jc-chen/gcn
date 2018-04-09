@@ -1,0 +1,380 @@
+train_on_targets/
+Epochs: 277
+train_loss= 0.9658322      val_loss= 0.72114563
+train_acc= [0.46756157]
+val_acc= [2.1653876]
+train_mae= [0.77414143]
+Test cost= 0.80620384
+Test_acc= [2.8847306]
+Test mae= [0.7135626]
+
+train_on_targets/
+Epochs: 244
+train_loss= 0.6480702      val_loss= 0.23826203
+train_acc= [1.7732277]
+val_acc= [0.67243207]
+train_mae= [0.7252339]
+Test cost= 0.107910894
+Test_acc= [0.6234306]
+Test mae= [0.32709858]
+
+train_on_targets/
+Epochs: 185
+train_loss= 0.49515617      val_loss= 68.91928
+train_acc= [0.0845519]
+val_acc= [2.038481]
+train_mae= [0.7023938]
+Test cost= 0.7773013
+Test_acc= [0.18123092]
+Test mae= [0.88164693]
+
+train_on_targets/
+Epochs: 185
+train_loss= 0.49754155      val_loss= 51.45129
+train_acc= [0.09890104]
+val_acc= [2.0225968]
+train_mae= [0.7048934]
+Test cost= 0.19348948
+Test_acc= [0.11759981]
+Test mae= [0.43987438]
+
+train_on_targets/
+Epochs: 260
+train_loss= 0.4434392      val_loss= 0.122044116
+train_acc= [1.4469415]
+val_acc= [0.5018057]
+train_mae= [0.62693256]
+Test cost= 0.03859499
+Test_acc= [0.40567246]
+Test mae= [0.19645607]
+
+train_on_targets/
+Epochs: 185
+train_loss= 0.49515617      val_loss= 68.91928
+train_acc= [0.0845519]
+val_acc= [2.038481]
+train_mae= [0.7023938]
+Test cost= 0.7773013
+Test_acc= [0.18123092]
+Test mae= [0.88164693]
+
+train_on_targets/
+Epochs: 185
+train_loss= 0.49754155      val_loss= 51.45129
+train_acc= [0.09890104]
+val_acc= [2.0225968]
+train_mae= [0.7048934]
+Test cost= 0.19348948
+Test_acc= [0.11759981]
+Test mae= [0.43987438]
+
+train_on_targets/
+Epochs: 254
+train_loss= 0.4636504      val_loss= 0.45908186
+train_acc= [1.0227889]
+val_acc= [0.5798592]
+train_mae= [0.6554967]
+Test cost= 0.54508334
+Test_acc= [0.5942918]
+Test mae= [0.7382976]
+
+train_on_targets/
+Epochs: 254
+train_loss= 0.4636504      val_loss= 0.54508334
+train_acc= [1.0227889]
+val_acc= [0.5942918]
+train_mae= [0.6554967]
+Test cost= 0.45908186
+Test_acc= [0.5798592]
+Test mae= [0.6775558]
+
+train_on_targets/
+Epochs: 260
+train_loss= 0.49635366      val_loss= 0.18392043
+train_acc= [0.09893084]
+val_acc= [0.11692942]
+train_mae= [0.70190364]
+Test cost= 51.52242
+Test_acc= [2.022947]
+Test mae= [7.1779118]
+
+train_on_targets/
+Epochs: 185
+train_loss= 0.49515617      val_loss= 68.91928
+train_acc= [0.0845519]
+val_acc= [2.038481]
+train_mae= [0.7023938]
+Test cost= 0.7773013
+Test_acc= [0.18123092]
+Test mae= [0.88164693]
+
+train_on_targets/
+Epochs: 254
+train_loss= 0.4636504      val_loss= 0.54508334
+train_acc= [1.0227889]
+val_acc= [0.5942918]
+train_mae= [0.6554967]
+Test cost= 0.45908186
+Test_acc= [0.5798592]
+Test mae= [0.6775558]
+
+train_on_targets/
+Epochs: 185
+train_loss= 0.49754155      val_loss= 51.45129
+train_acc= [0.09890104]
+val_acc= [2.0225968]
+train_mae= [0.7048934]
+Test cost= 0.19348948
+Test_acc= [0.11759981]
+Test mae= [0.43987438]
+
+train_on_targets/
+Epochs: 267
+train_loss= 0.44343895      val_loss= 0.03877506
+train_acc= [1.4467216]
+val_acc= [0.40579197]
+train_mae= [0.6271686]
+Test cost= 0.12244424
+Test_acc= [0.50192755]
+Test mae= [0.34992033]
+
+train_on_targets/
+Epochs: 167
+train_loss= 0.495683      val_loss= 69.494896
+train_acc= [0.08442689]
+val_acc= [2.0406113]
+train_mae= [0.6938236]
+Test cost= 0.6538509
+Test_acc= [0.17769304]
+Test mae= [0.8086105]
+
+train_on_targets/
+Epochs: 187
+train_loss= 0.49989563      val_loss= 77.94674
+train_acc= [0.01392591]
+val_acc= [0.5340731]
+train_mae= [0.7062587]
+Test cost= 2732.4543
+Test_acc= [1.9428895]
+Test mae= [52.272884]
+
+train_on_targets/
+Epochs: 272
+train_loss= 0.44343895      val_loss= 0.038675968
+train_acc= [1.4468272]
+val_acc= [0.40572625]
+train_mae= [0.62705535]
+Test cost= 0.12222409
+Test_acc= [0.50186056]
+Test mae= [0.34960562]
+
+train_on_targets/
+Epochs: 244
+train_loss= 0.46365005      val_loss= 0.5468238
+train_acc= [1.0227195]
+val_acc= [0.5944764]
+train_mae= [0.655581]
+Test cost= 0.46076342
+Test_acc= [0.5800593]
+Test mae= [0.6787956]
+
+train_on_targets/
+Epochs: 128
+train_loss= 0.62381923      val_loss= 2755.2664
+train_acc= [0.01406915]
+val_acc= [1.9449127]
+train_mae= [0.71567386]
+Test cost= 84.93187
+Test_acc= [0.53992534]
+Test mae= [9.215849]
+
+train_on_targets/
+Epochs: 272
+train_loss= 0.44343895      val_loss= 0.038675968
+train_acc= [1.4468272]
+val_acc= [0.40572625]
+train_mae= [0.62705535]
+Test cost= 0.12222409
+Test_acc= [0.50186056]
+Test mae= [0.34960562]
+
+train_on_targets/
+Epochs: 244
+train_loss= 0.4963538      val_loss= 0.18452623
+train_acc= [0.09893096]
+val_acc= [0.11697237]
+train_mae= [0.7018911]
+Test cost= 51.517857
+Test_acc= [2.0229247]
+Test mae= [7.177594]
+
+train_on_targets/
+Epochs: 271
+train_loss= 0.4371103      val_loss= 0.05080309
+train_acc= [1.371485]
+val_acc= [0.42022777]
+train_mae= [0.6180943]
+Test cost= 0.19226766
+Test_acc= [0.53098035]
+Test mae= [0.43848336]
+
+train_on_targets/
+Epochs: 272
+train_loss= 0.44343895      val_loss= 0.038675968
+train_acc= [1.4468272]
+val_acc= [0.40572625]
+train_mae= [0.62705535]
+Test cost= 0.12222409
+Test_acc= [0.50186056]
+Test mae= [0.34960562]
+
+train_on_targets/
+Epochs: 187
+train_loss= 0.49652302      val_loss= 51.613514
+train_acc= [0.09891929]
+val_acc= [2.0233955]
+train_mae= [0.703062]
+Test cost= 0.17202929
+Test_acc= [0.11607157]
+Test mae= [0.41476414]
+
+train_on_targets/
+Epochs: 244
+train_loss= 0.46365005      val_loss= 0.46076342
+train_acc= [1.0227195]
+val_acc= [0.5800593]
+train_mae= [0.655581]
+Test cost= 0.5468238
+Test_acc= [0.5944764]
+Test mae= [0.73947537]
+
+train_on_targets/
+Epochs: 244
+train_loss= 0.46365005      val_loss= 0.5468238
+train_acc= [1.0227195]
+val_acc= [0.5944764]
+train_mae= [0.655581]
+Test cost= 0.46076342
+Test_acc= [0.5800593]
+Test mae= [0.6787956]
+
+train_on_targets/
+Epochs: 244
+train_loss= 0.43711048      val_loss= 0.19320634
+train_acc= [1.3715665]
+val_acc= [0.5311925]
+train_mae= [0.6179855]
+Test cost= 0.051209733
+Test_acc= [0.42045322]
+Test mae= [0.22629568]
+
+train_on_targets/
+Epochs: 239
+train_loss= 0.49390393      val_loss= 0.76039654
+train_acc= [0.08449286]
+val_acc= [0.18076396]
+train_mae= [0.6983464]
+Test cost= 68.99512
+Test_acc= [2.038762]
+Test mae= [8.30633]
+
+train_on_targets/
+Epochs: 239
+train_loss= 0.49390393      val_loss= 0.76039654
+train_acc= [0.08449286]
+val_acc= [0.18076396]
+train_mae= [0.6983464]
+Test cost= 68.99512
+Test_acc= [2.038762]
+Test mae= [8.30633]
+
+train_on_targets/
+Epochs: 244
+train_loss= 0.46365005      val_loss= 0.5468238
+train_acc= [1.0227195]
+val_acc= [0.5944764]
+train_mae= [0.655581]
+Test cost= 0.46076342
+Test_acc= [0.5800593]
+Test mae= [0.6787956]
+
+train_on_targets/
+Epochs: 244
+train_loss= 0.46365005      val_loss= 0.5468238
+train_acc= [1.0227195]
+val_acc= [0.5944764]
+train_mae= [0.655581]
+Test cost= 0.46076342
+Test_acc= [0.5800593]
+Test mae= [0.6787956]
+
+train_on_targets/
+Epochs: 244
+train_loss= 0.46365005      val_loss= 0.5468238
+train_acc= [1.0227195]
+val_acc= [0.5944764]
+train_mae= [0.655581]
+Test cost= 0.46076342
+Test_acc= [0.5800593]
+Test mae= [0.6787956]
+
+train_on_targets/
+Epochs: 239
+train_loss= 0.49390393      val_loss= 0.76039654
+train_acc= [0.08449286]
+val_acc= [0.18076396]
+train_mae= [0.6983464]
+Test cost= 68.99512
+Test_acc= [2.038762]
+Test mae= [8.30633]
+
+train_on_targets/
+Epochs: 187
+train_loss= 0.49652302      val_loss= 51.613514
+train_acc= [0.09891929]
+val_acc= [2.0233955]
+train_mae= [0.703062]
+Test cost= 0.17202929
+Test_acc= [0.11607157]
+Test mae= [0.41476414]
+
+train_on_targets/
+Epochs: 239
+train_loss= 0.49390393      val_loss= 0.76039654
+train_acc= [0.08449286]
+val_acc= [0.18076396]
+train_mae= [0.6983464]
+Test cost= 68.99512
+Test_acc= [2.038762]
+Test mae= [8.30633]
+
+train_on_targets/
+Epochs: 167
+train_loss= 0.495683      val_loss= 69.494896
+train_acc= [0.08442689]
+val_acc= [2.0406113]
+train_mae= [0.6938236]
+Test cost= 0.6538509
+Test_acc= [0.17769304]
+Test mae= [0.8086105]
+
+train_on_targets/
+Epochs: 187
+train_loss= 0.49652302      val_loss= 51.613514
+train_acc= [0.09891929]
+val_acc= [2.0233955]
+train_mae= [0.703062]
+Test cost= 0.17202929
+Test_acc= [0.11607157]
+Test mae= [0.41476414]
+
+train_on_targets/
+Epochs: 272
+train_loss= 0.44343895      val_loss= 0.038675968
+train_acc= [1.4468272]
+val_acc= [0.40572625]
+train_mae= [0.62705535]
+Test cost= 0.12222409
+Test_acc= [0.50186056]
+Test mae= [0.34960562]
+

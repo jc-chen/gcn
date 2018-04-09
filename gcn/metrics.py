@@ -46,3 +46,16 @@ def square_error(preds, labels, mask):
     loss = tf.losses.mean_squared_error(labels,preds,reduction=tf.losses.Reduction.NONE)
     loss = tf.multiply(loss,mask)
     return tf.reduce_mean(loss)
+
+
+def square_error_alt(preds, labels, mask):
+    """L2 loss refactored to incorporate masks"""
+    # should be equivalent to the other square error function
+    mask = tf.cast(mask,dtype=tf.float32)
+    mask = tf.expand_dims(mask,-1)
+    mask = tf.tile(mask,[1,labels.shape[1].value])
+    
+    loss = tf.losses.mean_squared_error(labels,preds,reduction=tf.losses.Reduction.NONE)
+    loss = tf.boolean_mask(loss,mask)
+    return tf.reduce_mean(loss)
+  

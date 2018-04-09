@@ -11,13 +11,16 @@ import argparse
 import os
 
 
+
+
+
 # Settings
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 flags.DEFINE_string('dataset', 'cora', 'Dataset string.')  # 'cora', 'citeseer', 'pubmed'
 flags.DEFINE_string('model', 'jcnn', 'Model string.')  # 'gcn', 'gcn_cheby', 'dense'
-flags.DEFINE_float('learning_rate', 3.0, 'Initial learning rate.')
-flags.DEFINE_integer('epochs', 5000, 'Number of epochs to train.')
+flags.DEFINE_float('learning_rate', 2.0, 'Initial learning rate.')
+flags.DEFINE_integer('epochs', 200, 'Number of epochs to train.')
 flags.DEFINE_integer('hidden1', 36, 'Number of units in hidden layer 1.')
 flags.DEFINE_integer('hidden2', 30, 'Number of units in hidden layer 2.')
 flags.DEFINE_integer('hidden3', 34, 'Number of units in hidden layer 3.')
@@ -30,7 +33,7 @@ flags.DEFINE_integer('hidden9', 30, 'Number of units in hidden layer 9.')
 flags.DEFINE_integer('hidden10', 24, 'Number of units in hidden layer 10.')
 flags.DEFINE_integer('hidden11', 24, 'Number of units in hidden layer 11.')
 flags.DEFINE_integer('hidden12', 24, 'Number of units in hidden layer 12.')
-flags.DEFINE_integer('node_output_size', 10, 'Number of hidden features each node has prior to readout')
+flags.DEFINE_integer('node_output_size', 20, 'Number of hidden features each node has prior to readout')
 flags.DEFINE_float('dropout', 0.2, 'Dropout rate (1 - keep probability).')
 flags.DEFINE_float('weight_decay', 5e-4, 'Weight for L2 loss on embedding matrix.')
 flags.DEFINE_integer('early_stopping', 100, 'Tolerance for early stopping (# of epochs).')
@@ -62,11 +65,11 @@ tf.set_random_seed(seed)
 
 # Load data
 load_previous = 0
-#########[target_mean,target_stdev,adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(data_path,load_previous)
-pklpath ='ALL' #'1000/b1/'
-data_path = '../proc/' # + pklpath # args['data_path']
+pickle=0
+pklpath ='easter/' #'1000/b1/'
+data_path = '../shuffled/1000/' # + pklpath # args['data_path']
 
-[adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(data_path,pklpath,load_previous)
+[adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(data_path,pklpath,pickle,load_previous)
 #[adj_new,features_new,y_new,molecule_partitions_new,num_molecules_new]=load_data_new(data_path_new)
 
 #support_new = [preprocess_adj(adj_new)]
@@ -98,9 +101,6 @@ placeholders = {
 }
 
 
-
-
-
 # Create model
 model = model_func(placeholders, input_dim=features[2][1], logging=True)
 #input_dim is like...if you have k features for each node, then input_dim=k
@@ -108,10 +108,8 @@ model = model_func(placeholders, input_dim=features[2][1], logging=True)
 
 # Define model evaluation function
 def evaluate(features, support, labels, molecule_partitions, num_molecules, placeholders, mask=None):
-
     if mask is None:
         mask = np.array(np.ones(labels.shape[0]), dtype=np.bool)
-
     t_test = time.time()
     feed_dict_val = construct_feed_dict(features, support, labels, mask, molecule_partitions, num_molecules, placeholders)
     outs_val = sess.run([model.loss, model.accuracy,model.mae], feed_dict=feed_dict_val)
@@ -119,8 +117,8 @@ def evaluate(features, support, labels, molecule_partitions, num_molecules, plac
 
 
 
-
 # Initialize session
+print("Initializing session......")
 saver = tf.train.Saver()
 sess = tf.Session()
 
@@ -130,12 +128,14 @@ summary_writer = tf.summary.FileWriter('../tensorboard/',sess.graph)
 
 
 # Init variables
+print("Initializing variables......")
 sess.run(tf.global_variables_initializer())
 
 if args['input_name'] is not None:
     saver.restore(sess,args['dir_model']+args['input_name']+'/'+args['input_name'])
 
 #normalize targets in model
+print("Normalizing targets......")
 [m,s]=sess.run([model.get_mean,model.get_std], feed_dict={placeholders['labels']: y_train, placeholders['labels_mask']: train_mask})
 
 cost_val = []
@@ -161,26 +161,27 @@ for epoch in range(FLAGS.epochs):
     cost, acc, mae, duration = evaluate(features, support, y_val, molecule_partitions, num_molecules, placeholders, mask=val_mask)
     cost_val.append(cost)
 
-    if (epoch == 30):
-        FLAGS.learning_rate = 2.0
-        print("Changing learning rate to: ", FLAGS.learning_rate)
-    if (epoch == 100):
+    if (epoch == 20):
         FLAGS.learning_rate = 1.0
-    if (epoch == 150):
-        FLAGS.learning_rate = 0.5
-        print("Changing learning rate to: ", FLAGS.learning_rate)
-    if (epoch == 300):
+        print_learn_rate(FLAGS.learning_rate)
+    if (epoch == 35):
+        FLAGS.learning_rate = 0.5        
+        print_learn_rate(FLAGS.learning_rate)
+    if (epoch == 50):
         FLAGS.learning_rate = 0.1
-        print("Changing learning rate to: ", FLAGS.learning_rate)
-    if (epoch == 500):
-        FLAGS.learning_rate = 0.05
-        print("Changing learning rate to: ", FLAGS.learning_rate)
-    if (epoch == 700):
+        print_learn_rate(FLAGS.learning_rate)
+    if (epoch == 100):
+        FLAGS.learning_rate = 0.05        
+        print_learn_rate(FLAGS.learning_rate)
+    if (epoch == 300):
         FLAGS.learning_rate = 0.01
-        print("Changing learning rate to: ", FLAGS.learning_rate)
+        print_learn_rate(FLAGS.learning_rate)
+    if (epoch == 500):
+        FLAGS.learning_rate = 0.005
+        print_learn_rate(FLAGS.learning_rate)
     if (epoch == 1000):
         FLAGS.learning_rate = 0.001
-        print("Changing learning rate to: ", FLAGS.learning_rate)
+        print_learn_rate(FLAGS.learning_rate)
 
     # Log a summary ever 10 steps
     #if epoch % 10 == 0:
@@ -210,13 +211,20 @@ test_cost, test_acc, test_mae, test_duration = evaluate(features, support, y_tes
 print("Test set results:", "cost=", "{:.5f}".format(test_cost),
       "accuracy= ", str(test_acc), "mae= ", str(test_mae), "time=", "{:.5f}".format(test_duration))
 
-Costs_file = open("analysis/train_size.txt","a+")
-Costs_file.write(pklpath + "\n")
-Costs_file.write("Epochs: " + str(epoch + 1) + "\ntrain_loss= " + str(outs[1]) + 
-    "      val_loss= " + str(cost) + "\ntrain_acc= " + str(outs[2]) + "\nval_acc= " + 
-    str(acc) + "\ntrain_mae= " + str(outs[5]))
-Costs_file.write("\n")
-Costs_file.write("Test cost= " + str(test_cost) + "\nTest_acc= " +str(test_acc))
-Costs_file.write("\nTest mae= " + str(test_mae))
-Costs_file.write("\n\n")
-Costs_file.close()
+#print("training: ", y_train)
+#print("validating: ", y_val)
+#print("testing: ", y_test)
+
+
+
+
+# Costs_file = open("wat.txt","a+")
+# Costs_file.write(pklpath + "\n")
+# Costs_file.write("Epochs: " + str(epoch + 1) + "\ntrain_loss= " + str(outs[1]) + 
+#     "      val_loss= " + str(cost) + "\ntrain_acc= " + str(outs[2]) + "\nval_acc= " + 
+#     str(acc) + "\ntrain_mae= " + str(outs[5]))
+# Costs_file.write("\n")
+# Costs_file.write("Test cost= " + str(test_cost) + "\nTest_acc= " +str(test_acc))
+# Costs_file.write("\nTest mae= " + str(test_mae))
+# Costs_file.write("\n\n")
+# Costs_file.close()

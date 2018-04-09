@@ -49,6 +49,8 @@ class Model(object):
 
     def build(self):
         """ Wrapper for _build() """
+        #print(self.inputs.get_shape(),"eeeeeeee")
+
         with tf.variable_scope(self.name):
             self._build()
             self.target_mean = tf.Variable(tf.zeros([self.placeholders['labels'].shape[1].value]), dtype=tf.float32, trainable=False)
@@ -63,7 +65,7 @@ class Model(object):
         # Build sequential layer model
         self.activations.append(self.inputs)
         for layer in self.layers:
-            hidden = layer(self.activations[-1])
+            hidden = layer([self.activations[0], self.activations[-1]])
             self.activations.append(hidden)
         self.outputs = self.activations[-1]
 
@@ -136,19 +138,18 @@ class JCNN(Model):
         super(JCNN, self).__init__(**kwargs)
 
         self.inputs = placeholders['features']
+
         self.input_dim = input_dim
         # self.input_dim = self.inputs.get_shape().as_list()[1]  # To be supported in future Tensorflow versions
 
         # this should be molecule outputs now
         self.molecule_number_of_outputs = placeholders['labels'].get_shape().as_list()[1]
-
         self.molecule_partitions = placeholders['molecule_partitions']
         self.num_molecules = placeholders['num_molecules']
-
         self.placeholders = placeholders
 
         self.optimizer = tf.train.AdamOptimizer(learning_rate=FLAGS.learning_rate)
-
+        
 
         self.build()
 
@@ -183,13 +184,14 @@ class JCNN(Model):
                                             placeholders=self.placeholders,
                                             act=tf.nn.relu,
                                             dropout=False,
+                                            bias=True,
                                             logging=self.logging))
 
         self.layers.append(GraphConvolution(input_dim=FLAGS.hidden2,
                                             output_dim=FLAGS.hidden3,
                                             placeholders=self.placeholders,
                                             act=tf.nn.relu,
-                                            dropout = True,
+                                            dropout = False,
                                             bias=False,
                                             logging=self.logging))
 
@@ -210,7 +212,8 @@ class JCNN(Model):
                                             dropout=False,
                                             logging=self.logging))
         
-        self.layers.append(ReadOut(input_dim=FLAGS.node_output_size, 
+        self.layers.append(ReadOut3(input_dim=FLAGS.node_output_size, 
+                                    features_dim = self.input_dim,
                                     output_dim=self.molecule_number_of_outputs,
                                     placeholders=self.placeholders,
                                     act=lambda x: x,

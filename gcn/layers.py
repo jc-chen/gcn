@@ -74,7 +74,7 @@ class Layer(object):
     def __call__(self, inputs):
         with tf.name_scope(self.name):
             if self.logging and not self.sparse_inputs:
-                tf.summary.histogram(self.name + '/inputs', inputs)
+                tf.summary.histogram(self.name + '/inputs', inputs[-1])
             outputs = self._call(inputs)
             if self.logging:
                 tf.summary.histogram(self.name + '/outputs', outputs)
@@ -83,53 +83,6 @@ class Layer(object):
     def _log_vars(self):
         for var in self.vars:
             tf.summary.histogram(self.name + '/vars/' + var, self.vars[var])
-
-
-class Dense(Layer):
-    """Dense layer."""
-    def __init__(self, input_dim, output_dim, placeholders, dropout=0., sparse_inputs=False,
-                 act=tf.nn.relu, bias=False, featureless=False, **kwargs):
-        super(Dense, self).__init__(**kwargs)
-
-        if dropout:
-            self.dropout = placeholders['dropout']
-        else:
-            self.dropout = 0.
-
-        self.act = act
-        self.sparse_inputs = sparse_inputs
-        self.featureless = featureless
-        self.bias = bias
-
-        # helper variable for sparse dropout
-        self.num_features_nonzero = placeholders['num_features_nonzero']
-
-        with tf.variable_scope(self.name + '_vars'):
-            self.vars['weights'] = glorot([input_dim, output_dim],
-                                          name='weights')
-            if self.bias:
-                self.vars['bias'] = zeros([output_dim], name='bias')
-
-        if self.logging:
-            self._log_vars()
-
-    def _call(self, inputs):
-        x = inputs
-
-        # dropout
-        if self.sparse_inputs:
-            x = sparse_dropout(x, 1-self.dropout, self.num_features_nonzero)
-        else:
-            x = tf.nn.dropout(x, 1-self.dropout)
-
-        # transform
-        output = dot(x, self.vars['weights'], sparse=self.sparse_inputs)
-
-        # bias
-        if self.bias:
-            output += self.vars['bias']
-
-        return self.act(output)
 
 
 class GraphConvolution(Layer):
@@ -164,7 +117,7 @@ class GraphConvolution(Layer):
             self._log_vars()
 
     def _call(self, inputs):
-        x = inputs
+        x = inputs[-1]
 
         # dropout
         if self.sparse_inputs:
@@ -191,17 +144,15 @@ class GraphConvolution(Layer):
         return self.act(output)
 
 
-class ReadOut(Layer):
+class ReadOut1(Layer):
     """from 'classes' weights to values"""
-    def __init__(self, input_dim, output_dim, placeholders, dropout=0.,
+    def __init__(self, input_dim, features_dim, output_dim, placeholders, dropout=0.,
                  sparse_inputs=False, act=tf.nn.relu, bias=False,
                  featureless=False, **kwargs):
-        super(ReadOut, self).__init__(**kwargs)
+        super(ReadOut1, self).__init__(**kwargs)
 
-        if dropout:
-            self.dropout = placeholders['dropout']
-        else:
-            self.dropout = 0.
+        if dropout: self.dropout = placeholders['dropout']
+        else: self.dropout = 0.
 
         self.act = act
         self.support = placeholders['support'] #support is the normalized adj matrix
@@ -213,41 +164,29 @@ class ReadOut(Layer):
         self.molecule_partitions = placeholders['molecule_partitions']
         self.num_molecules = placeholders['num_molecules']
 
-
         # helper variable for sparse dropout
         self.num_features_nonzero = placeholders['num_features_nonzero']
-
 
         with tf.variable_scope(self.name + '_vars'):
 
             self.vars['weights_i'] = glorot([input_dim, output_dim],
                                             name='weights_i')        
-            self.vars['weights_j'] = glorot([input_dim, output_dim],
+            self.vars['weights_j'] = glorot([features_dim, output_dim],
                                             name='weights_j')        
             if self.bias:
                 self.vars['bias_i'] = zeros([output_dim],
                                             name='bias_i')
                 self.vars['bias_j'] = zeros([output_dim],
-                                            name='bias_j')
-                
-            # for i in range(input_dim*output_dim):
-                # self.vars['weights_i_' + str(i)] = glorot([input_dim, output_dim],
-                #                                         name='weights_i_' + str(i))
-                
-                # self.vars['weights_j_' + str(i)] = glorot([input_dim, output_dim],
-                #                                         name='weights_j_' + str(i))
-                # if self.bias:
-                #     self.vars['bias_' + str(i)] = zeros([output_dim], name='bias_'+str(i))
-
+                                            name='bias_j')          
         if self.logging:
             self._log_vars()
         
-
-
     def _call(self, inputs):
-        x = inputs
-
-        i=0
+        x = inputs[-1]
+        x_init = inputs[0]
+        x_init =  sparse_dropout(x_init, 1-self.dropout, self.num_features_nonzero)
+        x_init = tf.sparse_tensor_to_dense(x_init,validate_indices=False)
+        
         # dropout
         if self.sparse_inputs:
             x = sparse_dropout(x, 1-self.dropout, self.num_features_nonzero)
@@ -255,26 +194,23 @@ class ReadOut(Layer):
         else:
             x = tf.nn.dropout(x, 1-self.dropout)
 
-
         # b = tf.slice(x,[0,self.molecule_partitions[0],0],[1,self.molecule_partitions[1],x.shape[1]])
-
-        '''this is the part (transform/convolve) that needs to be changed to output desired value'''
         #n_molecs = tf.scan(lambda a, x:a,)
         #tf.dynamic_partition(x, self.molecule_partitions, self.num_molecules, name=None)
 
         nn_i = tf.matmul(x,self.vars['weights_i'])
-        nn_j = tf.matmul(x,self.vars['weights_j'])
+        nn_j = tf.matmul(x_init,self.vars['weights_j'])
         
         if self.bias:
             nn_i += self.vars['bias_i']
             nn_j += self.vars['bias_j']
 
 
-        nn_i = nn_i
-        nn_j = tf.nn.tanh(nn_j)
+        nn_i = tf.nn.sigmoid(nn_i)
+        nn_j = tf.nn.leaky_relu(nn_j)
 
-        #output = tf.multiply(nn_i,nn_j)
-        output = nn_i
+        output = tf.multiply(nn_i,nn_j)
+        #output = nn_i
         output = tf.cumsum(output)
 
         output = tf.gather(output,self.molecule_partitions)
@@ -289,9 +225,201 @@ class ReadOut(Layer):
         #     support = dot(self.support[i], pre_sup, sparse=True)
         #     supports.append(support)
         # output = tf.add_n(supports)
-        
-        # bias
 
         return self.act(output)
 
 
+class ReadOut2(Layer):
+    def __init__(self, input_dim, features_dim, output_dim, placeholders, dropout=0.,
+                 sparse_inputs=False, act=tf.nn.relu, bias=False,
+                 featureless=False, **kwargs):
+        super(ReadOut2, self).__init__(**kwargs)
+
+        if dropout: self.dropout = placeholders['dropout']
+        else: self.dropout = 0.
+
+        self.act = act
+        self.support = placeholders['support'] #support is the normalized adj matrix
+        self.sparse_inputs = sparse_inputs
+        self.featureless = featureless
+        self.bias = bias
+        self.num_labels = placeholders['labels'].shape[1]
+        self.molecule_partitions = placeholders['molecule_partitions']
+        self.num_molecules = placeholders['num_molecules']
+
+        # helper variable for sparse dropout
+        self.num_features_nonzero = placeholders['num_features_nonzero']
+
+        with tf.variable_scope(self.name + '_vars'):
+            self.vars['weights_i'] = glorot([input_dim, output_dim],
+                                            name='weights_i')      
+            if self.bias:
+                self.vars['bias_i'] = zeros([output_dim],
+                                            name='bias_i')
+        if self.logging:
+            self._log_vars()
+        
+
+    def _call(self, inputs):
+        x = inputs[-1]
+        
+        # dropout
+        if self.sparse_inputs:
+            x = sparse_dropout(x, 1-self.dropout, self.num_features_nonzero)
+            x = tf.sparse_tensor_to_dense(x,validate_indices=False)
+        else:
+            x = tf.nn.dropout(x, 1-self.dropout)
+
+        nn_i = tf.matmul(x,self.vars['weights_i'])
+        
+        if self.bias:
+            nn_i += self.vars['bias_i']
+
+        nn_i = tf.nn.leaky_relu(nn_i)
+
+        output = nn_i
+        output = tf.cumsum(output)
+        output = tf.gather(output,self.molecule_partitions)
+        output = tensor_diff(self, output)
+
+        return self.act(output)
+
+
+
+class ReadOut3(Layer):
+    def __init__(self, input_dim, features_dim, output_dim, placeholders, dropout=0.,
+                 sparse_inputs=False, act=tf.nn.relu, bias=False,
+                 featureless=False, **kwargs):
+        super(ReadOut3, self).__init__(**kwargs)
+
+        if dropout: self.dropout = placeholders['dropout']
+        else: self.dropout = 0.
+
+        self.act = act
+        self.support = placeholders['support'] #support is the normalized adj matrix
+        self.sparse_inputs = sparse_inputs
+        self.featureless = featureless
+        self.bias = bias
+        self.num_labels = placeholders['labels'].shape[1]
+        self.molecule_partitions = placeholders['molecule_partitions']
+        self.num_molecules = placeholders['num_molecules']
+
+        # helper variable for sparse dropout
+        self.num_features_nonzero = placeholders['num_features_nonzero']
+
+        with tf.variable_scope(self.name + '_vars'):
+            self.vars['weights_i'] = glorot([input_dim, features_dim],
+                                            name='weights_i')        
+            self.vars['weights_j'] = glorot([features_dim, output_dim],
+                                            name='weights_j')        
+            self.vars['weights_k'] = glorot([features_dim, output_dim],
+                                            name='weights_k')       
+            if self.bias:
+                self.vars['bias_i'] = zeros([output_dim],
+                                            name='bias_i')
+                self.vars['bias_j'] = zeros([output_dim],
+                                            name='bias_j')
+        if self.logging:
+            self._log_vars()
+        
+
+    def _call(self, inputs):
+        x = inputs[-1]
+        x_init = inputs[0]
+        x_init =  sparse_dropout(x_init, 1-self.dropout, self.num_features_nonzero)
+        x_init = tf.sparse_tensor_to_dense(x_init,validate_indices=False)
+        
+        # dropout
+        if self.sparse_inputs:
+            x = sparse_dropout(x, 1-self.dropout, self.num_features_nonzero)
+            x = tf.sparse_tensor_to_dense(x,validate_indices=False)
+        else:
+            x = tf.nn.dropout(x, 1-self.dropout)
+
+        nn_i = tf.matmul(x,self.vars['weights_i'])
+        nn_i = tf.multiply(nn_i,x_init)
+        nn_i = tf.matmul(nn_i,self.vars['weights_k'])
+        nn_j = tf.matmul(x_init,self.vars['weights_j'])
+        
+        if self.bias:
+            nn_i += self.vars['bias_i']
+            nn_j += self.vars['bias_j']
+
+        nn_i = tf.nn.sigmoid(nn_i)
+        nn_j = tf.nn.leaky_relu(nn_j)
+
+        output = tf.multiply(nn_i,nn_j)
+        output = tf.cumsum(output)
+        output = tf.gather(output,self.molecule_partitions)
+        output = tensor_diff(self, output)
+
+        return self.act(output)
+
+class ReadOut4(Layer):
+    def __init__(self, input_dim, features_dim, output_dim, placeholders, dropout=0.,
+                 sparse_inputs=False, act=tf.nn.relu, bias=False,
+                 featureless=False, **kwargs):
+        super(ReadOut4, self).__init__(**kwargs)
+
+        if dropout: self.dropout = placeholders['dropout']
+        else: self.dropout = 0.
+
+        self.act = act
+        self.support = placeholders['support'] #support is the normalized adj matrix
+        self.sparse_inputs = sparse_inputs
+        self.featureless = featureless
+        self.bias = bias
+        self.num_labels = placeholders['labels'].shape[1]
+        self.molecule_partitions = placeholders['molecule_partitions']
+        self.num_molecules = placeholders['num_molecules']
+
+        # helper variable for sparse dropout
+        self.num_features_nonzero = placeholders['num_features_nonzero']
+
+        with tf.variable_scope(self.name + '_vars'):
+            self.vars['weights_i'] = glorot([input_dim, features_dim],
+                                            name='weights_i')        
+            self.vars['weights_j'] = glorot([features_dim, output_dim],
+                                            name='weights_j')        
+            self.vars['weights_k'] = glorot([features_dim, output_dim],
+                                            name='weights_k')       
+            if self.bias:
+                self.vars['bias_i'] = zeros([output_dim],
+                                            name='bias_i')
+                self.vars['bias_j'] = zeros([output_dim],
+                                            name='bias_j')
+        if self.logging:
+            self._log_vars()
+        
+
+    def _call(self, inputs):
+        x = inputs[-1]
+        x_init = inputs[0]
+        x_init =  sparse_dropout(x_init, 1-self.dropout, self.num_features_nonzero)
+        x_init = tf.sparse_tensor_to_dense(x_init,validate_indices=False)
+        
+        # dropout
+        if self.sparse_inputs:
+            x = sparse_dropout(x, 1-self.dropout, self.num_features_nonzero)
+            x = tf.sparse_tensor_to_dense(x,validate_indices=False)
+        else:
+            x = tf.nn.dropout(x, 1-self.dropout)
+
+        nn_i = tf.matmul(x,self.vars['weights_i'])
+        nn_i = tf.multiply(nn_i,x_init)
+        nn_i = tf.matmul(nn_i,self.vars['weights_k'])
+        nn_j = tf.matmul(x_init,self.vars['weights_j'])
+        
+        if self.bias:
+            nn_i += self.vars['bias_i']
+            nn_j += self.vars['bias_j']
+
+        nn_i = tf.nn.sigmoid(nn_i)
+        nn_j = tf.nn.leaky_relu(nn_j)
+
+        output = tf.multiply(nn_i,nn_j)
+        output = tf.cumsum(output)
+        output = tf.gather(output,self.molecule_partitions)
+        output = tensor_diff(self, output)
+
+        return self.act(output)

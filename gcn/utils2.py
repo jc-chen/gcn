@@ -4,6 +4,8 @@ import networkx as nx
 import scipy.sparse as sp
 from scipy.sparse.linalg.eigen.arpack import eigsh
 import sys, os
+import matplotlib.pyplot as plt
+from rdkit import Chem
 
 import Cython;
 import molmod as mm;
@@ -47,7 +49,7 @@ def load_pickled(path, *args):
     return a
 
 
-def add_sample(url,features,target,A,sizes,num_molecules,elements_info):
+def add_sample_molmod(url,features,target,A,sizes,num_molecules,elements_info):
     #extract information from xyz file
     try:
         mol = mm.Molecule.from_file(url);
@@ -62,21 +64,21 @@ def add_sample(url,features,target,A,sizes,num_molecules,elements_info):
         vertices = mol.graph.numbers;
         edges = mol.graph.edges;
         d = len(vertices) #the size of each molecule
+        partial_charges=properties[22:(23+5*(d-1)):5]
+        atomic_number_mean = elements_info[1]
+        atomic_number_stdev = elements_info[2]
 
+        # Find Benzene
         # if (d==12):
         #     if (list(vertices).count(1) == 6):
         #         if (list(vertices).count(6) == 6):
         #             print(url)
         #             return features, target, A, sizes, num_molecules 
-
         # else:
         #     return features, target, A, sizes, num_molecules
 
-        partial_charges=properties[22:(23+5*(d-1)):5]
 
-        atomic_number_mean = elements_info[1]
-        atomic_number_stdev = elements_info[2]
-
+        # Targets
         dipole_moment = float(properties[6])
         polarizability = float(properties[7])
         homo = float(properties[8])
@@ -90,14 +92,12 @@ def add_sample(url,features,target,A,sizes,num_molecules,elements_info):
         free_nrg = float(properties[16])
         heat_capacity = float(properties[17])
   
+        target.append([heat_capacity])
+        #target.append([dipole_moment,polarizability,homo,lumo,gap,
+        #    r2,zpve,U0,internal_energy,enthalpy,free_nrg,heat_capacity])
+
 
         tempA = np.zeros((d,d)); #Adjacency matrix
-        #Structure of the features matrix: (in a row)
-        # atomic_no, H, C, N, O, F, #H, vdw radius, partial charge, acceptor, donor
-        # int, one-hot (5 cols), int, float, float, one-hot (2 cols)
-
-        f = 11
-        tempfeatures = [[0]*f for _ in range(d)]; # d=#nodes,  f=#features available
 
         #populate the adjacency matrix with intermolecular distances in terms of 1/r^2
         for tupl in edges:
@@ -107,6 +107,14 @@ def add_sample(url,features,target,A,sizes,num_molecules,elements_info):
             tempA[v_i][v_j] = 1.0/pow(mol.distance_matrix[v_i][v_j],2)
             tempA[v_j][v_i] = 1.0/pow(mol.distance_matrix[v_i][v_j],2)
 
+        A.append(sp.coo_matrix(tempA))
+        
+        # Write features
+        f = 11
+        tempfeatures = [[0]*f for _ in range(d)]; # d=#nodes,  f=#features available
+        #Structure of the features matrix: (in a row)
+        # atomic_no, H, C, N, O, F, #H, vdw radius, partial charge, acceptor, donor
+        # int, one-hot (5 cols), int, float, float, one-hot (2 cols)
         for atom in range(len(vertices)):
             tempfeatures[atom][0] = (float(vertices[atom])-atomic_number_mean)/atomic_number_stdev
             tempfeatures[atom][1] = int(vertices[atom]==1) #H
@@ -119,7 +127,6 @@ def add_sample(url,features,target,A,sizes,num_molecules,elements_info):
             tempfeatures[atom][8] = float(partial_charges[atom]) #Mulliken partial charge
             tempfeatures[atom][9] = int(float(partial_charges[atom]) >0.0)
             tempfeatures[atom][10] = int(float(partial_charges[atom]) <0.0)
-        A.append(sp.coo_matrix(tempA))
         if (num_molecules == 0):
             sizes = sizes + [d-1]
         else:
@@ -128,9 +135,113 @@ def add_sample(url,features,target,A,sizes,num_molecules,elements_info):
         if (num_molecules % 5000 == 0):
             print("On the "+str(num_molecules)+"th molecule")
 
-        target.append([dipole_moment,polarizability,homo,lumo,gap,
-            r2,zpve,U0,internal_energy,enthalpy,free_nrg,heat_capacity])
+        
+        features+=tempfeatures
+        return features, target, A, sizes, num_molecules
+    except Exception as e:
+        #Write exception to file
+        print(str(e))
+        with open("analysis/problem_files.txt","a+") as file:
+            file.write(str(num_molecules)+" :  "+str(url)+ "   " + str(e) + "\n")
+        return features, target, A, sizes, num_molecules
 
+def add_sample(url,features,target,A,sizes,num_molecules,elements_info):
+    #extract information from xyz file
+    try:
+        properties = [];
+
+        with open(url,'r') as file:
+            for row in file:
+                properties += row.split();
+
+        
+        SMILES = properties[-4]
+        m = Chem.MolFromSmiles(SMILES)
+        m = Chem.AddHs(m)
+        vertices = m.GetAtoms()
+        #edges = m.GetBonds()
+        d = len(vertices)
+
+        partial_charges=properties[22:(23+5*(d-1)):5]
+        atomic_number_mean = elements_info[1]
+        atomic_number_stdev = elements_info[2]
+
+        #pc = m.ComputeGasteigerCharges()
+        #print(pc,partial_charges)
+
+
+        # Targets
+        dipole_moment = float(properties[6])
+        polarizability = float(properties[7])
+        homo = float(properties[8])
+        lumo = float(properties[9])
+        gap = float(properties[10])
+        r2 = float(properties[11])
+        zpve = float(properties[12])
+        U0 = float(properties[13])
+        internal_energy = float(properties[14])
+        enthalpy = float(properties[15])
+        free_nrg = float(properties[16])
+        heat_capacity = float(properties[17])
+  
+        target.append([heat_capacity])
+        #target.append([dipole_moment,polarizability,homo,lumo,gap,
+        #    r2,zpve,U0,internal_energy,enthalpy,free_nrg,heat_capacity])
+
+
+        #populate the adjacency matrix and write features
+        tempA = np.zeros((d,d)); #Adjacency matrix
+        f = 7
+        tempfeatures = [[0]*f for _ in range(d)]; # d=#nodes,  f=#features available
+
+        for atom in vertices:
+            # Get features of the atom
+            v_i = atom.GetIdx()
+            atomic_num = atom.GetAtomicNum()
+            degree = atom.GetDegree()
+            valence = atom.GetTotalValence()
+            hybrid = int(atom.GetHybridization())
+            atom_aromatic = atom.GetIsAromatic()
+            ring = atom.IsInRing()
+            rad = atom.GetNumRadicalElectrons()
+
+            #print(atomic_num,degree,valence,hybrid,atom_aromatic,ring)
+
+            # Get bonds
+            linked_atoms =[x.GetIdx() for x in atom.GetNeighbors()]
+
+            # Populate adjacency matrix
+            for v_j in linked_atoms:
+                bond_order = m.GetBondBetweenAtoms(v_i,v_j).GetBondTypeAsDouble()
+                bond_aromatic = m.GetBondBetweenAtoms(v_i,v_j).GetIsAromatic()
+                tempA[v_i][v_j] = bond_order
+            
+            # Write features
+            tempfeatures[v_i][0] = (atomic_num - atomic_number_mean)/atomic_number_stdev
+            tempfeatures[v_i][1] = int(atomic_num==1) #H
+            tempfeatures[v_i][2] = int(atomic_num==6) #C
+            tempfeatures[v_i][3] = int(atomic_num==7) #N
+            tempfeatures[v_i][4] = int(atomic_num==8) #O
+            tempfeatures[v_i][5] = int(atomic_num==9) #F
+            tempfeatures[v_i][6] = int(atom_aromatic)
+            #tempfeatures[v_i][7] = ring #float(partial_charges[atom]) #Mulliken partial charge
+            #tempfeatures[v_i][8] = degree
+            #tempfeatures[v_i][9] = valence
+            #tempfeatures[v_i][10] = hybrid
+
+
+        A.append(sp.coo_matrix(tempA))
+        
+        if (num_molecules == 0):
+            sizes = sizes + [d-1]
+        else:
+            sizes = sizes + [d]
+        num_molecules=num_molecules+1
+
+        if (num_molecules % 5000 == 0):
+            print("On the "+str(num_molecules)+"th molecule")
+
+        
         features+=tempfeatures
         return features, target, A, sizes, num_molecules
     except Exception as e:
@@ -142,10 +253,10 @@ def add_sample(url,features,target,A,sizes,num_molecules,elements_info):
 
 
 
-def load_data3(data_path, pklpath, flag=0):
+def load_data3(data_path, pklpath, pklflag=0, loadflag=0):
     """Load data."""
 
-    if (flag==1):
+    if (loadflag==1):
         return load_pickled(pklpath,'adj','features','y_train',
             'y_val', 'y_test','train_mask','val_mask','test_mask','molecule_partitions','num_molecules')
 
@@ -171,13 +282,12 @@ def load_data3(data_path, pklpath, flag=0):
 
 
     # Divide into train, validation, test sets
-    randomized_order = range(num_molecules)
+    randomized_order = list(range(num_molecules))
     shuffle(randomized_order)
 
     idx_train = randomized_order[0:int(num_molecules*2/3)]
     idx_val = randomized_order[int(num_molecules*2/3):int(num_molecules*5/6)]
     idx_test = randomized_order[int(num_molecules*5/6):]
-
 
     tar = np.array(target)
     target_mean = np.mean(target,axis=0)
@@ -186,7 +296,10 @@ def load_data3(data_path, pklpath, flag=0):
     adj = sp.csr_matrix(sp.block_diag(A))
     labels = np.array(target)
 
-
+    # histy,histx = np.histogram(labels,bins=20)
+    # fig,ax = plt.subplots()
+    # ax.plot(histx[:-1],histy)
+    # plt.show()
 
     train_mask = sample_mask(idx_train, labels.shape[0])
     val_mask = sample_mask(idx_val, labels.shape[0])
@@ -203,11 +316,14 @@ def load_data3(data_path, pklpath, flag=0):
 
     print("About to write to file")
 
-    pickle_file(pklpath,('adj', adj), ('features', feats), ('y_train', y_train), ('y_val', y_val), ('y_test', y_test), 
-        ('train_mask', train_mask), ('val_mask', val_mask), ('test_mask', test_mask),
-        ('molecule_partitions',molecule_partitions),('num_molecules',num_molecules))
+    if (pklflag):
+        pickle_file(pklpath,('adj', adj), ('features', feats), ('y_train', y_train), ('y_val', y_val), ('y_test', y_test), 
+            ('train_mask', train_mask), ('val_mask', val_mask), ('test_mask', test_mask),
+            ('molecule_partitions',molecule_partitions),('num_molecules',num_molecules))
 
-    print("Finished writing to file")
+        print("finished writing to file")
+
+    #print([adj, feats, y_train, y_val, y_test, train_mask, val_mask, test_mask, molecule_partitions, num_molecules])
 
     return [adj, feats, y_train, y_val, y_test, train_mask, val_mask, test_mask, molecule_partitions, num_molecules]
 
@@ -380,3 +496,12 @@ def tensor_diff(self, input_tensor):
     d_tensor = tf.add(A,B)
     out = tf.matmul(d_tensor,input_tensor, name="output_after_tensorDiff")
     return out
+
+
+def sparse_matrix_to_sparse_tensor(coo):
+    indices = np.mat([coo.row, coo.col]).transpose()
+    return tf.SparseTensor(indices, coo.data, coo.shape)
+
+def print_learn_rate(rate):
+    print("......\n......\n ......Changing learning rate to: ", rate, "\n......\n......")
+    return

@@ -1,8 +1,8 @@
 import os
 
 
-input_url = '../../tem/'
-output_url = '../../proc/'
+input_url = '../../cleaned_data/'
+output_url = '../../cleaned/'
 
 for file in os.listdir(input_url):
 	with open(input_url+file,'r') as fin:
