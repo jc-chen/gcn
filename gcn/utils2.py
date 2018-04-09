@@ -171,7 +171,7 @@ def load_data3(data_path, pklpath, flag=0):
 
 
     # Divide into train, validation, test sets
-    randomized_order = range(num_molecules)
+    randomized_order = list(range(num_molecules))
     shuffle(randomized_order)
 
     idx_train = randomized_order[0:int(num_molecules*2/3)]
