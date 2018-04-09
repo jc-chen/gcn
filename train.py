@@ -7,9 +7,10 @@ import tensorflow as tf
 from gcn.utils2 import *
 from gcn.models import JCNN
 
-import argparse
 import os
 
+#usage
+#python train.py --output_name my_new_model_name --input_name my_restored_model_name
 
 
 
@@ -39,27 +40,35 @@ flags.DEFINE_float('weight_decay', 5e-4, 'Weight for L2 loss on embedding matrix
 flags.DEFINE_integer('early_stopping', 100, 'Tolerance for early stopping (# of epochs).')
 flags.DEFINE_integer('max_degree', 3, 'Maximum Chebyshev polynomial degree.')
 
+# command line arguments
+flags.DEFINE_integer('random_seed',123,'random seed for repeatability')
+flags.DEFINE_string('data_path','../proc/','data path')
+flags.DEFINE_string('dir_model','models/','directory for storing saved models')
+flags.DEFINE_string('output_name','unnamed','name of the saved model')
+flags.DEFINE_string('input_name',None,'name of the saved model')
 
 
-#usage
-#python train.py --output-name my_new_model_name --input-name my_restored_model_name
+def build_summaries():
+    train_loss = tf.Variable(0.)
+    train_acc = tf.Variable(0.)
 
-parser = argparse.ArgumentParser(description='provide arguments for model builder')
+    a = tf.summary.scalar("Train Loss", train_loss)
+    b = tf.summary.scalar("Train Acc", train_acc)
 
-# run parameters
-parser.add_argument('--random-seed', help='random seed for repeatability', default=123)
-parser.add_argument('--data-path', help='data path', default='../batches/batch0/')
-parser.add_argument('--dir-model', help='directory for storing saved models', default='models/')
-parser.add_argument('--output-name', help='name of the saved model', default='unnamed')
-parser.add_argument('--input-name', help='name of the saved model', default=None)
+    summary_vars = [train_loss,train_acc]
+    summary_ops = tf.summary.merge([a,b])
+    summary_writer = tf.summary.FileWriter('tensorboard/'+FLAGS.output_name+'/',sess.graph)
 
-args = vars(parser.parse_args())
+    return summary_ops, summary_vars, summary_writer
 
-if not os.path.exists(args['dir_model']):
-    os.makedirs(args['dir_model'])
+
+
+
+if not os.path.exists(FLAGS.dir_model):
+    os.makedirs(FLAGS.dir_model)
 
 # Set random seed
-seed = args['random_seed']
+seed = FLAGS.random_seed
 np.random.seed(seed)
 tf.set_random_seed(seed)
 
@@ -116,33 +125,27 @@ def evaluate(features, support, labels, molecule_partitions, num_molecules, plac
     return outs_val[0], outs_val[1], outs_val[2], (time.time() - t_test)
 
 
-
 # Initialize session
 print("Initializing session......")
 saver = tf.train.Saver()
 sess = tf.Session()
 
 # Tensorboard stuff
-summary_ops = tf.summary.merge_all()
-summary_writer = tf.summary.FileWriter('../tensorboard/',sess.graph)
-
+summary_ops, summary_vars, summary_writer = build_summaries()
 
 # Init variables
 print("Initializing variables......")
 sess.run(tf.global_variables_initializer())
 
-if args['input_name'] is not None:
-    saver.restore(sess,args['dir_model']+args['input_name']+'/'+args['input_name'])
+if FLAGS.input_name is not None:
+    saver.restore(sess,FLAGS.dir_model+FLAGS.input_name+'/'+FLAGS.input_name)
 
 #normalize targets in model
 print("Normalizing targets......")
 [m,s]=sess.run([model.get_mean,model.get_std], feed_dict={placeholders['labels']: y_train, placeholders['labels_mask']: train_mask})
 
 cost_val = []
-#summary_writer = tf.train.SummaryWriter('/tmp/logs', sess.graph_def)
 
-# Train model
-tf.summary.scalar('second', tf.Variable(5))
 
 for epoch in range(FLAGS.epochs):
 
@@ -152,10 +155,13 @@ for epoch in range(FLAGS.epochs):
     feed_dict.update({placeholders['dropout']: FLAGS.dropout})
 
     # Training step
-    outs = sess.run([model.opt_op, model.loss, model.accuracy,summary_ops,model.outputs,model.mae], feed_dict=feed_dict)
+    outs = sess.run([model.opt_op, model.loss, model.accuracy,model.outputs,model.mae], feed_dict=feed_dict)
 
-    summary_writer.add_summary(outs[3], epoch)
-    #summary_writer.flush()
+    summary_str = sess.run(summary_ops, feed_dict={
+        summary_vars[0]: outs[1], #training loss
+        summary_vars[1]: outs[1]*10 #training acc
+    })
+    summary_writer.add_summary(summary_str, epoch)
 
     # Validation
     cost, acc, mae, duration = evaluate(features, support, y_val, molecule_partitions, num_molecules, placeholders, mask=val_mask)
@@ -190,7 +196,7 @@ for epoch in range(FLAGS.epochs):
     # Print results
     print("Epoch:", '%04d' % (epoch + 1), "train_loss=", "{:.5f}".format(outs[1]),
           "val_loss=", "{:.5f}".format(cost), "train_acc= ", str(outs[2]),        
-          " val_acc= ", str(acc),"train_mae= ", str(outs[5]), "time=", "{:.5f}".format(time.time() - t))
+          " val_acc= ", str(acc),"train_mae= ", str(outs[4]), "time=", "{:.5f}".format(time.time() - t))
 
     if epoch > FLAGS.early_stopping and cost_val[-1] > np.mean(cost_val[-(FLAGS.early_stopping+1):-1]):
         print("Early stopping...")
@@ -199,12 +205,10 @@ for epoch in range(FLAGS.epochs):
 
 print("Optimization Finished!")
 
-
 plswork = sess.run(model.vars,feed_dict=feed_dict)
 
-
-saver.save(sess,args['dir_model']+ pklpath + 'name')
-
+saver.save(sess,FLAGS.dir_model+FLAGS.output_name+'/'+FLAGS.output_name)
+summary_writer.flush()
 
 # Testing
 test_cost, test_acc, test_mae, test_duration = evaluate(features, support, y_test, molecule_partitions, num_molecules, placeholders,mask=test_mask)
