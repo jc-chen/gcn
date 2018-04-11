@@ -148,7 +148,7 @@ class JCNN(Model):
         self.num_molecules = placeholders['num_molecules']
         self.placeholders = placeholders
 
-        self.optimizer = tf.train.AdamOptimizer(learning_rate=FLAGS.learning_rate)
+        self.optimizer = tf.train.AdagradOptimizer(learning_rate=FLAGS.learning_rate)
         
 
         self.build()

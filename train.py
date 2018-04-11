@@ -21,13 +21,13 @@ FLAGS = flags.FLAGS
 flags.DEFINE_string('dataset', 'cora', 'Dataset string.')  # 'cora', 'citeseer', 'pubmed'
 flags.DEFINE_string('model', 'jcnn', 'Model string.')  # 'gcn', 'gcn_cheby', 'dense'
 flags.DEFINE_float('learning_rate', 2.0, 'Initial learning rate.')
-flags.DEFINE_integer('epochs', 200, 'Number of epochs to train.')
-flags.DEFINE_integer('hidden1', 36, 'Number of units in hidden layer 1.')
-flags.DEFINE_integer('hidden2', 30, 'Number of units in hidden layer 2.')
-flags.DEFINE_integer('hidden3', 34, 'Number of units in hidden layer 3.')
-flags.DEFINE_integer('hidden4', 28, 'Number of units in hidden layer 4.')
-flags.DEFINE_integer('hidden5', 22, 'Number of units in hidden layer 5.')
-flags.DEFINE_integer('hidden6', 30, 'Number of units in hidden layer 6.')
+flags.DEFINE_integer('epochs', 500, 'Number of epochs to train.')
+flags.DEFINE_integer('hidden1', 40, 'Number of units in hidden layer 1.')
+flags.DEFINE_integer('hidden2', 45, 'Number of units in hidden layer 2.')
+flags.DEFINE_integer('hidden3', 45, 'Number of units in hidden layer 3.')
+flags.DEFINE_integer('hidden4', 40, 'Number of units in hidden layer 4.')
+flags.DEFINE_integer('hidden5', 50, 'Number of units in hidden layer 5.')
+flags.DEFINE_integer('hidden6', 50, 'Number of units in hidden layer 6.')
 flags.DEFINE_integer('hidden7', 28, 'Number of units in hidden layer 7.')
 flags.DEFINE_integer('hidden8', 28, 'Number of units in hidden layer 8.')
 flags.DEFINE_integer('hidden9', 30, 'Number of units in hidden layer 9.')
@@ -37,12 +37,12 @@ flags.DEFINE_integer('hidden12', 24, 'Number of units in hidden layer 12.')
 flags.DEFINE_integer('node_output_size', 20, 'Number of hidden features each node has prior to readout')
 flags.DEFINE_float('dropout', 0.2, 'Dropout rate (1 - keep probability).')
 flags.DEFINE_float('weight_decay', 5e-4, 'Weight for L2 loss on embedding matrix.')
-flags.DEFINE_integer('early_stopping', 100, 'Tolerance for early stopping (# of epochs).')
+flags.DEFINE_integer('early_stopping', 50, 'Tolerance for early stopping (# of epochs).')
 flags.DEFINE_integer('max_degree', 3, 'Maximum Chebyshev polynomial degree.')
 
 # command line arguments
-flags.DEFINE_integer('random_seed',123,'random seed for repeatability')
-flags.DEFINE_string('data_path','../proc/','data path')
+flags.DEFINE_integer('random_seed',121,'random seed for repeatability')
+flags.DEFINE_string('data_path','../shuffled/1000/','data path')
 flags.DEFINE_string('dir_model','models/','directory for storing saved models')
 flags.DEFINE_string('output_name','unnamed','name of the saved model')
 flags.DEFINE_string('input_name',None,'name of the saved model')
@@ -74,11 +74,13 @@ tf.set_random_seed(seed)
 
 # Load data
 load_previous = 0
-pickle=0
-pklpath ='easter/' #'1000/b1/'
-data_path = '../shuffled/1000/' # + pklpath # args['data_path']
+pickle=1
+pklpath = FLAGS.output_name + '/' 
 
-[adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(data_path,pklpath,pickle,load_previous)
+if not os.path.exists(pklpath):
+    os.makedirs(pklpath)
+
+[adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(FLAGS.data_path,pklpath,pickle,load_previous)
 #[adj_new,features_new,y_new,molecule_partitions_new,num_molecules_new]=load_data_new(data_path_new)
 
 #support_new = [preprocess_adj(adj_new)]
@@ -91,8 +93,8 @@ print("Finished loading data!")
 # Some preprocessing
 features = preprocess_features(features)
 if FLAGS.model == 'jcnn':
-    support = [preprocess_adj(adj)]  # Not used
-    num_supports = 1
+    support = preprocess_adj(adj)
+    num_supports = len(adj)
     model_func = JCNN
 else:
     raise ValueError('Invalid argument for model: ' + str(FLAGS.model))
@@ -159,7 +161,7 @@ for epoch in range(FLAGS.epochs):
 
     summary_str = sess.run(summary_ops, feed_dict={
         summary_vars[0]: outs[1], #training loss
-        summary_vars[1]: outs[1]*10 #training acc
+        summary_vars[1]: outs[2] #training acc
     })
     summary_writer.add_summary(summary_str, epoch)
 
@@ -167,25 +169,27 @@ for epoch in range(FLAGS.epochs):
     cost, acc, mae, duration = evaluate(features, support, y_val, molecule_partitions, num_molecules, placeholders, mask=val_mask)
     cost_val.append(cost)
 
+    # if (epoch == 50):
+    #     FLAGS.learning_rate = 0.0001
     if (epoch == 20):
         FLAGS.learning_rate = 1.0
         print_learn_rate(FLAGS.learning_rate)
-    if (epoch == 35):
+    if (epoch == 50):
         FLAGS.learning_rate = 0.5        
         print_learn_rate(FLAGS.learning_rate)
-    if (epoch == 50):
+    if (epoch == 100):
         FLAGS.learning_rate = 0.1
         print_learn_rate(FLAGS.learning_rate)
-    if (epoch == 100):
+    if (epoch == 120):
         FLAGS.learning_rate = 0.05        
         print_learn_rate(FLAGS.learning_rate)
-    if (epoch == 300):
+    if (epoch == 170):
         FLAGS.learning_rate = 0.01
         print_learn_rate(FLAGS.learning_rate)
-    if (epoch == 500):
+    if (epoch == 200):
         FLAGS.learning_rate = 0.005
         print_learn_rate(FLAGS.learning_rate)
-    if (epoch == 1000):
+    if (epoch == 250):
         FLAGS.learning_rate = 0.001
         print_learn_rate(FLAGS.learning_rate)
 
@@ -213,7 +217,13 @@ summary_writer.flush()
 # Testing
 test_cost, test_acc, test_mae, test_duration = evaluate(features, support, y_test, molecule_partitions, num_molecules, placeholders,mask=test_mask)
 print("Test set results:", "cost=", "{:.5f}".format(test_cost),
-      "accuracy= ", str(test_acc), "mae= ", str(test_mae), "time=", "{:.5f}".format(test_duration))
+      "accuracy= ", str(test_acc), "mae= ", str(test_mae)) #, "time=", "{:.5f}".format(test_duration))
+
+print("Tran set results:", "cost=","{:.5f}".format(outs[1]),
+      "accuracy= ", str(outs[2]), "mae= ",str(outs[4]))
+
+print("Vald set results:", "cost=","{:.5f}".format(cost),
+      "accuracy= ", str(acc), "mae= ",str(mae))
 
 #print("training: ", y_train)
 #print("validating: ", y_val)

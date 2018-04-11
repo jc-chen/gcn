@@ -15,6 +15,23 @@ def masked_accuracy(preds, labels, mask, target_mean, target_stdev):
     mask = tf.cast(mask, dtype=tf.float32)
     mask = tf.expand_dims(mask,-1)
     mask = tf.tile(mask,[1,labels.shape[1].value])
+    #mask /= tf.reduce_mean(mask)
+    
+    labels = tf.boolean_mask(labels,mask)
+    preds = tf.boolean_mask(preds,mask)
+
+    labels = tf.abs(labels + target_mean/target_stdev)
+    preds = tf.abs(preds + target_mean/target_stdev)
+    diff = tf.abs(tf.subtract(labels,preds))
+    loss = tf.divide(diff,labels)
+    return tf.reduce_mean(loss,0)
+
+def masked_accuracy_old(preds, labels, mask, target_mean, target_stdev):
+    """Accuracy with masking."""
+    mask=tf.transpose(mask)
+    mask = tf.cast(mask, dtype=tf.float32)
+    mask = tf.expand_dims(mask,-1)
+    mask = tf.tile(mask,[1,labels.shape[1].value])
     mask /= tf.reduce_mean(mask)
     #mnabserr = tf.metrics.mean_absolute_error(labels,preds)
     #accuracy_all = tf.multiply(mnabserr,mask)
@@ -22,9 +39,10 @@ def masked_accuracy(preds, labels, mask, target_mean, target_stdev):
 
     labels *= mask #fixes an annoying divide by 0 problem
 
-    denom = tf.abs(labels + target_mean/target_stdev)
+    labels = labels + target_mean/target_stdev
+    preds = preds + target_mean/target_stdev
     diff = tf.abs(tf.subtract(labels,preds))
-    loss = tf.divide(diff,denom)
+    loss = tf.divide(diff,tf.abs(labels))
     loss = tf.multiply(loss,mask)
     return tf.reduce_mean(loss,0)
 
@@ -37,7 +55,7 @@ def mean_absolute_error(preds,labels,mask):
     loss = tf.multiply(loss,mask)
     return tf.reduce_mean(loss,0)    
 
-def square_error(preds, labels, mask):
+def square_error_old(preds, labels, mask):
     """L2 loss refactored to incorporate masks"""
     mask = tf.cast(mask,dtype=tf.float32)
     mask = tf.expand_dims(mask,-1)
@@ -48,14 +66,26 @@ def square_error(preds, labels, mask):
     return tf.reduce_mean(loss)
 
 
-def square_error_alt(preds, labels, mask):
+def square_error(preds, labels, mask):
     """L2 loss refactored to incorporate masks"""
     # should be equivalent to the other square error function
     mask = tf.cast(mask,dtype=tf.float32)
     mask = tf.expand_dims(mask,-1)
     mask = tf.tile(mask,[1,labels.shape[1].value])
-    
+
     loss = tf.losses.mean_squared_error(labels,preds,reduction=tf.losses.Reduction.NONE)
     loss = tf.boolean_mask(loss,mask)
     return tf.reduce_mean(loss)
+
+
+
+def square_error_3(preds, labels, mask):
+    """L2 loss refactored to incorporate masks"""
+    # should be equivalent to the other square error function
+    mask = tf.cast(mask,dtype=tf.float32)
+    mask = tf.expand_dims(mask,-1)
+    mask = tf.tile(mask,[1,labels.shape[1].value])
+
+    loss = tf.losses.mean_squared_error(labels,preds,mask)
+    return loss
   
