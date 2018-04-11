@@ -148,7 +148,7 @@ class JCNN(Model):
         self.num_molecules = placeholders['num_molecules']
         self.placeholders = placeholders
 
-        self.optimizer = tf.train.AdagradOptimizer(learning_rate=FLAGS.learning_rate)
+        self.optimizer = tf.train.AdamOptimizer(learning_rate=FLAGS.learning_rate)
         
 
         self.build()
@@ -174,7 +174,7 @@ class JCNN(Model):
         self.layers.append(GraphConvolution(input_dim=self.input_dim,
                                             output_dim=FLAGS.hidden1,
                                             placeholders=self.placeholders,
-                                            act=tf.nn.relu,
+                                            act=tf.nn.leaky_relu,
                                             dropout=False,
                                             sparse_inputs=True,
                                             logging=self.logging))
@@ -182,7 +182,7 @@ class JCNN(Model):
         self.layers.append(GraphConvolution(input_dim=FLAGS.hidden1,
                                             output_dim=FLAGS.hidden2,
                                             placeholders=self.placeholders,
-                                            act=tf.nn.relu,
+                                            act=tf.nn.leaky_relu,
                                             dropout=False,
                                             bias=True,
                                             logging=self.logging))
@@ -190,7 +190,7 @@ class JCNN(Model):
         self.layers.append(GraphConvolution(input_dim=FLAGS.hidden2,
                                             output_dim=FLAGS.hidden3,
                                             placeholders=self.placeholders,
-                                            act=tf.nn.relu,
+                                            act=tf.nn.leaky_relu,
                                             dropout = False,
                                             bias=False,
                                             logging=self.logging))
@@ -199,7 +199,7 @@ class JCNN(Model):
         self.layers.append(GraphConvolution(input_dim=FLAGS.hidden3,
                                             output_dim=FLAGS.hidden4,
                                             placeholders=self.placeholders,
-                                            act=tf.nn.relu,
+                                            act=tf.nn.leaky_relu,
                                             dropout = False,
                                             bias=True,
                                             logging=self.logging))

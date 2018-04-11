@@ -20,13 +20,13 @@ flags = tf.app.flags
 FLAGS = flags.FLAGS
 flags.DEFINE_string('dataset', 'cora', 'Dataset string.')  # 'cora', 'citeseer', 'pubmed'
 flags.DEFINE_string('model', 'jcnn', 'Model string.')  # 'gcn', 'gcn_cheby', 'dense'
-flags.DEFINE_float('learning_rate', 2.0, 'Initial learning rate.')
-flags.DEFINE_integer('epochs', 500, 'Number of epochs to train.')
-flags.DEFINE_integer('hidden1', 40, 'Number of units in hidden layer 1.')
-flags.DEFINE_integer('hidden2', 45, 'Number of units in hidden layer 2.')
-flags.DEFINE_integer('hidden3', 45, 'Number of units in hidden layer 3.')
-flags.DEFINE_integer('hidden4', 40, 'Number of units in hidden layer 4.')
-flags.DEFINE_integer('hidden5', 50, 'Number of units in hidden layer 5.')
+flags.DEFINE_float('learning_rate', 3.0, 'Initial learning rate.')
+flags.DEFINE_integer('epochs', 700, 'Number of epochs to train.')
+flags.DEFINE_integer('hidden1', 30, 'Number of units in hidden layer 1.')
+flags.DEFINE_integer('hidden2', 38, 'Number of units in hidden layer 2.')
+flags.DEFINE_integer('hidden3', 28, 'Number of units in hidden layer 3.')
+flags.DEFINE_integer('hidden4', 34, 'Number of units in hidden layer 4.')
+flags.DEFINE_integer('hidden5', 30, 'Number of units in hidden layer 5.')
 flags.DEFINE_integer('hidden6', 50, 'Number of units in hidden layer 6.')
 flags.DEFINE_integer('hidden7', 28, 'Number of units in hidden layer 7.')
 flags.DEFINE_integer('hidden8', 28, 'Number of units in hidden layer 8.')
@@ -41,7 +41,7 @@ flags.DEFINE_integer('early_stopping', 50, 'Tolerance for early stopping (# of e
 flags.DEFINE_integer('max_degree', 3, 'Maximum Chebyshev polynomial degree.')
 
 # command line arguments
-flags.DEFINE_integer('random_seed',121,'random seed for repeatability')
+flags.DEFINE_integer('random_seed',123,'random seed for repeatability')
 flags.DEFINE_string('data_path','../shuffled/1000/','data path')
 flags.DEFINE_string('dir_model','models/','directory for storing saved models')
 flags.DEFINE_string('output_name','unnamed','name of the saved model')
@@ -171,25 +171,25 @@ for epoch in range(FLAGS.epochs):
 
     # if (epoch == 50):
     #     FLAGS.learning_rate = 0.0001
-    if (epoch == 20):
+    if (epoch == 50):
         FLAGS.learning_rate = 1.0
         print_learn_rate(FLAGS.learning_rate)
-    if (epoch == 50):
+    if (epoch == 90):
         FLAGS.learning_rate = 0.5        
         print_learn_rate(FLAGS.learning_rate)
-    if (epoch == 100):
+    if (epoch == 150):
         FLAGS.learning_rate = 0.1
         print_learn_rate(FLAGS.learning_rate)
-    if (epoch == 120):
+    if (epoch == 180):
         FLAGS.learning_rate = 0.05        
         print_learn_rate(FLAGS.learning_rate)
-    if (epoch == 170):
+    if (epoch == 250):
         FLAGS.learning_rate = 0.01
         print_learn_rate(FLAGS.learning_rate)
-    if (epoch == 200):
+    if (epoch == 300):
         FLAGS.learning_rate = 0.005
         print_learn_rate(FLAGS.learning_rate)
-    if (epoch == 250):
+    if (epoch == 350):
         FLAGS.learning_rate = 0.001
         print_learn_rate(FLAGS.learning_rate)
 
@@ -209,7 +209,6 @@ for epoch in range(FLAGS.epochs):
 
 print("Optimization Finished!")
 
-plswork = sess.run(model.vars,feed_dict=feed_dict)
 
 saver.save(sess,FLAGS.dir_model+FLAGS.output_name+'/'+FLAGS.output_name)
 summary_writer.flush()
